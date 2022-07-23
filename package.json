@@ -10,7 +10,8 @@
 		"gen:theme-typings": "npx chakra-cli tokens ./src/theme",
 		"postinstall": "npm run gen:theme-typings",
 		"storybook": ". ~/.nvm/nvm.sh; nvm use; start-storybook -p 6006",
-		"build-storybook": "build-storybook"
+		"build-storybook": "build-storybook",
+		"test": "vitest"
 	},
 	"dependencies": {
 		"@chakra-ui/react": "^2.2.4",
@@ -43,6 +44,7 @@
 		"eslint-config-next": "12.2.3",
 		"eslint-plugin-react": "^7.30.1",
 		"typescript": "4.7.4",
-		"vite": "^3.0.2"
+		"vite": "^3.0.2",
+		"vitest": "^0.18.1"
 	}
 }
