@@ -13,7 +13,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-export const getFirebaseClient = () => {
+const getFirebaseClient = () => {
 	try {
 		return getApp();
 	} catch (err) {
@@ -22,3 +22,5 @@ export const getFirebaseClient = () => {
 };
 
 setupLocalEmulator(getFirebaseClient());
+
+export default getFirebaseClient;
