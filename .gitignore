@@ -37,6 +37,6 @@ yarn-error.log*
 
 # Firebase
 *.secret*
-.firebaserc
-*.rules
-firestore.indexes.*
+# .firebaserc
+# *.rules
+# firestore.indexes.*
