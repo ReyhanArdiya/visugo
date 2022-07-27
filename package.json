@@ -30,6 +30,7 @@
 	"devDependencies": {
 		"@babel/core": "^7.18.9",
 		"@chakra-ui/storybook-addon": "^4.0.4",
+		"@firebase/rules-unit-testing": "^2.0.4",
 		"@storybook/addon-actions": "^6.5.9",
 		"@storybook/addon-essentials": "^6.5.9",
 		"@storybook/addon-interactions": "^6.5.9",
@@ -44,6 +45,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.30.7",
 		"@typescript-eslint/parser": "^5.30.7",
 		"babel-loader": "^8.2.5",
+		"dotenv": "^16.0.1",
 		"eslint": "8.20.0",
 		"eslint-config-next": "12.2.3",
 		"eslint-plugin-react": "^7.30.1",
