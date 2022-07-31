@@ -1,13 +1,39 @@
-import { initializeTestEnvironment, RulesTestEnvironment, TestEnvironmentConfig,  } from "@firebase/rules-unit-testing";
+import {
+	initializeTestEnvironment,
+	RulesTestContext,
+	RulesTestEnvironment,
+	TestEnvironmentConfig
+} from "@firebase/rules-unit-testing";
+import { Firestore } from "firebase/firestore";
 
-export const getRulesTestEnv = async (config: TestEnvironmentConfig = {}) => await initializeTestEnvironment(config);
+export const getRulesTestEnv = async (config: TestEnvironmentConfig = {}) =>
+	await initializeTestEnvironment(config);
 
-export const getAuthUser = (rules: RulesTestEnvironment) => rules.authenticatedContext("1");
+export const getAuthUser = (rules: RulesTestEnvironment) =>
+	rules.authenticatedContext("1");
 
-export const getUnauthUser = (rules: RulesTestEnvironment) => rules.authenticatedContext("0");
+export const getUnauthUser = (rules: RulesTestEnvironment) =>
+	rules.authenticatedContext("0");
 
-export const firebaseSetup = async (config: Parameters<typeof getRulesTestEnv>[0]) => {
-	const rulesTestEnv = await getRulesTestEnv(config);
+export const mockDb = (rules: RulesTestContext): Firestore => ({
+	...rules.firestore(),
+	type: "firestore",
+	toJSON() {
+		return { ...this };
+	}
+});
+
+export const setupMockFirebase = async (
+	config?: Parameters<typeof getRulesTestEnv>[0]
+) => {
+	const rulesTestEnv = await getRulesTestEnv({
+		projectId: process.env.NEXT_PUBLIC_FIREBASE_CLIENT_PROJECTID,
+		hub: {
+			host: "localhost",
+			port: 4400
+		},
+		...config
+	});
 
 	return {
 		testEnv: rulesTestEnv,
@@ -16,23 +42,14 @@ export const firebaseSetup = async (config: Parameters<typeof getRulesTestEnv>[0
 	};
 };
 
-export const firebaseTeardown = async (rules: RulesTestEnvironment) => {
+export const cleanMockFirebase = async (rules: RulesTestEnvironment, clear = {
+	database: false,
+	firestore: true,
+	storage: false
+}) => {
+	clear.database && await rules.clearDatabase();
+	clear.firestore && await rules.clearFirestore();
+	clear.storage && await rules.clearStorage();
+
 	await rules.cleanup();
-	await rules.clearDatabase();
-	await rules.clearFirestore();
-	await rules.clearStorage();
 };
-
-// const firebaseTestUtils = async (config: Parameters<typeof getTestEnv>[0]) => {
-// 	const testEnv = await getTestEnv(config);
-
-// 	return {
-// 		getAuthUser: getAuthUser.bind(null, testEnv),
-// 		getUnauthUser: getAuthUser.bind(null, testEnv),
-// 		firebaseTeardown: firebaseTeardown.bind(null, testEnv)
-// 	};
-// };
-
-// export default firebaseTestUtils;
-
-
