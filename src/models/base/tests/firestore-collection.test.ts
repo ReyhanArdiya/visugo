@@ -40,9 +40,8 @@ beforeEach(async () => {
 
     rulesTestEnv = mockFirebase.testEnv;
     authUser = {
-        user: mockFirebase.authUser,
-        db: mockDb(mockFirebase.authUser),
-        collection: new BookCollection(converter, mockDb(mockFirebase.authUser))
+        ...mockFirebase.authUser,
+        collection: new BookCollection(converter, mockDb(mockFirebase.authUser.user))
     };
 });
 
