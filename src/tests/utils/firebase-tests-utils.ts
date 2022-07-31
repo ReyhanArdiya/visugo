@@ -6,14 +6,21 @@ import {
 } from "@firebase/rules-unit-testing";
 import { Firestore } from "firebase/firestore";
 
-export const getRulesTestEnv = async (config: TestEnvironmentConfig = {}) =>
-    await initializeTestEnvironment(config);
+export const getRulesTestEnv = async (config: TestEnvironmentConfig = {}) => {
+    return  await initializeTestEnvironment(config);
+};
 
-export const getAuthUser = (rules: RulesTestEnvironment) =>
-    rules.authenticatedContext("1");
+export enum MockFirestoreUserId {
+	AUTH_USER = "1"
+}
 
-export const getUnauthUser = (rules: RulesTestEnvironment) =>
-    rules.authenticatedContext("0");
+export const getAuthUser = (rules: RulesTestEnvironment) => {
+    return rules.authenticatedContext(MockFirestoreUserId.AUTH_USER);
+};
+
+export const getUnauthUser = (rules: RulesTestEnvironment) => {
+    return rules.unauthenticatedContext();
+};
 
 export const mockDb = (rules: RulesTestContext): Firestore => ({
     ...rules.firestore(),
@@ -22,6 +29,11 @@ export const mockDb = (rules: RulesTestContext): Firestore => ({
         return { ...this };
     }
 });
+
+export interface MockFirestoreUser {
+    user: RulesTestContext;
+    db: Firestore;
+}
 
 export const setupMockFirebase = async (
     config?: Parameters<typeof getRulesTestEnv>[0]
@@ -42,23 +54,26 @@ export const setupMockFirebase = async (
         testEnv: rulesTestEnv,
         authUser: {
             user: authUser,
-            db: mockDb(authUser),
-        },
+            db: mockDb(authUser)
+        } as MockFirestoreUser,
         unauthUser: {
             user: unauthUser,
-            db: mockDb(unauthUser),
-        },
+            db: mockDb(unauthUser)
+        } as MockFirestoreUser
     };
 };
 
-export const cleanMockFirebase = async (rules: RulesTestEnvironment, clear = {
-    database: false,
-    firestore: true,
-    storage: false
-}) => {
-    clear.database && await rules.clearDatabase();
-    clear.firestore && await rules.clearFirestore();
-    clear.storage && await rules.clearStorage();
+export const cleanMockFirebase = async (
+    rules: RulesTestEnvironment,
+    clear = {
+        database: false,
+        firestore: true,
+        storage: false
+    }
+) => {
+    clear.database && (await rules.clearDatabase());
+    clear.firestore && (await rules.clearFirestore());
+    clear.storage && (await rules.clearStorage());
 
     await rules.cleanup();
 };
