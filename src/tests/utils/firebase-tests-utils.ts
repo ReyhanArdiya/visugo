@@ -7,19 +7,7 @@ import {
 import { Firestore } from "firebase/firestore";
 
 export const getRulesTestEnv = async (config: TestEnvironmentConfig = {}) => {
-    return  await initializeTestEnvironment(config);
-};
-
-export enum MockFirestoreUserId {
-	AUTH_USER = "1"
-}
-
-export const getAuthUser = (rules: RulesTestEnvironment) => {
-    return rules.authenticatedContext(MockFirestoreUserId.AUTH_USER);
-};
-
-export const getUnauthUser = (rules: RulesTestEnvironment) => {
-    return rules.unauthenticatedContext();
+    return await initializeTestEnvironment(config);
 };
 
 export const mockDb = (rules: RulesTestContext): Firestore => ({
@@ -30,15 +18,41 @@ export const mockDb = (rules: RulesTestContext): Firestore => ({
     }
 });
 
-export interface MockFirestoreUser {
+export interface MockAuthUser {
     user: RulesTestContext;
     db: Firestore;
+    id: string;
 }
 
+export type MockUnauthUser = Omit<MockAuthUser, "id">;
+
+export const getAuthUser = (
+    rules: RulesTestEnvironment,
+    id: string
+): MockAuthUser => {
+    const authUser = rules.authenticatedContext(id);
+
+    return {
+        user: authUser,
+        db: mockDb(authUser),
+        id
+    };
+};
+
+export const getUnauthUser = (rules: RulesTestEnvironment): MockUnauthUser => {
+    const unauthUser = rules.unauthenticatedContext();
+
+    return {
+        user: unauthUser,
+        db: mockDb(unauthUser)
+    };
+};
+
 export const setupMockFirebase = async (
+    authUserId: MockAuthUser["id"],
     config?: Parameters<typeof getRulesTestEnv>[0]
 ) => {
-    const rulesTestEnv = await getRulesTestEnv({
+    const testEnv = await getRulesTestEnv({
         projectId: process.env.NEXT_PUBLIC_FIREBASE_CLIENT_PROJECTID,
         hub: {
             host: "localhost",
@@ -47,19 +61,13 @@ export const setupMockFirebase = async (
         ...config
     });
 
-    const authUser = getAuthUser(rulesTestEnv);
-    const unauthUser = getUnauthUser(rulesTestEnv);
+    const authUser = getAuthUser(testEnv, authUserId);
+    const unauthUser = getUnauthUser(testEnv);
 
     return {
-        testEnv: rulesTestEnv,
-        authUser: {
-            user: authUser,
-            db: mockDb(authUser)
-        } as MockFirestoreUser,
-        unauthUser: {
-            user: unauthUser,
-            db: mockDb(unauthUser)
-        } as MockFirestoreUser
+        testEnv,
+        authUser,
+        unauthUser
     };
 };
 
