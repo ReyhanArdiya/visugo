@@ -13,7 +13,7 @@ import {
     cleanMockFirebase,
     mockDb,
     setupMockFirebase
-} from "../../../tests/utils/firebase-tests-utils";
+} from "../../../tests/utils/firestore-tests-utils";
 import createBasicConverter from "../../../utils/firebase/client/firestore/create-basic-converter";
 import { BookCollection, BookDoc } from "./mock-data";
 
@@ -35,7 +35,7 @@ let rulesTestEnv: RulesTestEnvironment;
 let authUser: MockUser;
 
 beforeEach(async () => {
-    const mockFirebase = await setupMockFirebase();
+    const mockFirebase = await setupMockFirebase("1");
     const converter = createBasicConverter(BookDoc);
 
     rulesTestEnv = mockFirebase.testEnv;
