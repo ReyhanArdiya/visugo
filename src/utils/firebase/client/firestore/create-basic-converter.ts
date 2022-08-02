@@ -4,7 +4,9 @@ import { FirestoreDataConverter } from "firebase/firestore";
 /**
  * This converter cannot convert DocumentReference nor CollectionReference.
  */
-const createBasicConverter = <T extends Record<string, unknown>>(cls: ClassConstructor<T>) => {
+const createBasicConverter = <T extends Record<string, unknown>>(
+    cls: ClassConstructor<T>
+) => {
     const converter: FirestoreDataConverter<T> = {
         fromFirestore(snapshot, options?) {
             const data = snapshot.data(options);
@@ -13,7 +15,7 @@ const createBasicConverter = <T extends Record<string, unknown>>(cls: ClassConst
         },
         toFirestore(modelObject) {
             return { ...modelObject };
-        }
+        },
     };
 
     return converter;

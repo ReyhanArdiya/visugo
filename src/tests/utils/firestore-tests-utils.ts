@@ -2,7 +2,7 @@ import {
     initializeTestEnvironment,
     RulesTestContext,
     RulesTestEnvironment,
-    TestEnvironmentConfig
+    TestEnvironmentConfig,
 } from "@firebase/rules-unit-testing";
 import {
     doc,
@@ -10,7 +10,7 @@ import {
     DocumentSnapshot,
     Firestore,
     getDoc,
-    setDoc
+    setDoc,
 } from "firebase/firestore";
 import { UserDoc } from "../../models/user/user";
 
@@ -23,7 +23,7 @@ export const mockDb = (rules: RulesTestContext): Firestore => ({
     type: "firestore",
     toJSON() {
         return { ...this };
-    }
+    },
 });
 
 export interface MockAuthUser {
@@ -45,7 +45,7 @@ export const getAuthUser = (
         user: authUser,
         db: mockDb(authUser),
         id,
-        firestore: authUser.firestore()
+        firestore: authUser.firestore(),
     };
 };
 
@@ -55,7 +55,7 @@ export const getUnauthUser = (rules: RulesTestEnvironment): MockUnauthUser => {
     return {
         user: unauthUser,
         db: mockDb(unauthUser),
-        firestore: unauthUser.firestore()
+        firestore: unauthUser.firestore(),
     };
 };
 
@@ -71,7 +71,7 @@ export const setMockUserDoc = async (
 
     await setDoc(userRef, { uid: authUser.id });
 
-    return await getDoc(userRef) as DocumentSnapshot<UserDoc>;
+    return (await getDoc(userRef)) as DocumentSnapshot<UserDoc>;
 };
 
 export const setupMockFirebase = async (
@@ -82,9 +82,9 @@ export const setupMockFirebase = async (
         projectId: process.env.NEXT_PUBLIC_FIREBASE_CLIENT_PROJECTID,
         hub: {
             host: "localhost",
-            port: 4400
+            port: 4400,
         },
-        ...config
+        ...config,
     });
 
     const authUser = getAuthUser(testEnv, authUserId);
@@ -93,7 +93,7 @@ export const setupMockFirebase = async (
     return {
         testEnv,
         authUser,
-        unauthUser
+        unauthUser,
     };
 };
 
@@ -102,7 +102,7 @@ export const cleanMockFirebase = async (
     clear = {
         database: false,
         firestore: true,
-        storage: false
+        storage: false,
     }
 ) => {
     clear.database && (await rules.clearDatabase());

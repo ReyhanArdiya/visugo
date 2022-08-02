@@ -1,9 +1,9 @@
-const createPathSegments = (basePaths: string[], additionalPaths?: string[])=> {
-	if (additionalPaths) {
-		return basePaths.concat(additionalPaths);
-	}
+const createPathSegments = (basePaths: string[], additionalPaths?: string[]) => {
+    if (additionalPaths) {
+        return basePaths.concat(additionalPaths);
+    }
 
-	return basePaths;
+    return basePaths;
 };
 
 export default createPathSegments;
