@@ -1,4 +1,3 @@
-import { Transform, TransformationType } from "class-transformer";
 import { FirestoreDataConverter } from "firebase/firestore";
 import createPathSegments from "../../../utils/firebase/client/firestore/create-path-segments";
 
@@ -14,35 +13,40 @@ export class ListingDoc {
     // public seller: { username: UserDoc["username"]; uid: UserDoc["uid"] },
     // @Transform(({ value }) => value)
     public seller: DocumentReference<UserDoc>;
+    public title: string;
+    public description: string;
 
-    @Transform(({type, value}) => {
-        if (type === TransformationType.CLASS_TO_PLAIN) {
-            const storageReference = value as StorageReference;
+    // @Transform(({ type, value }) => {
+    //     if (type === TransformationType.CLASS_TO_PLAIN) {
+    //         const storageReference = value as StorageReference;
 
-            return storageReference.fullPath;
-        } else if (type === TransformationType.PLAIN_TO_CLASS) {
-            const fullPath = value as string;
+    //         return storageReference.fullPath;
+    //     } else if (type === TransformationType.PLAIN_TO_CLASS) {
+    //         const fullPath = value as string;
 
-            // TODO make getStorage utils after learning it
-            return ref(getStorage(), fullPath);
-        }
-    })
+    //         // TODO make getStorage utils after learning it
+    //         return ref(getStorage(), fullPath);
+    //     }
+    // })
+    // Image is stored as string in firestore model but StorageReference in this model,
+    // bcz firestore can't keep StorageReference
     public image: StorageReference;
 
-    @Transform(({value}) => value)
-    public created : Timestamp;
+    // @Transform(({ value }) => value)
+    public created: Timestamp;
 
     constructor(
         // CMT we could Denormalize this but i wanna start denormalizing once i learn cloud functions for easier sync
         // public seller: { username: UserDoc["username"]; uid: UserDoc["uid"] },
         seller: DocumentReference<UserDoc>,
-        public title: string,
-        public description: string,
-        // TODO make it somehow firstore keeps the string but in the converter we convert it into storagerefernce
+        title: string,
+        description: string,
         image: StorageReference,
         created = Timestamp.now()
     ) {
         this.seller = seller;
+        this.title = title;
+        this.description = description;
         this.image = image;
         this.created = created;
     }
@@ -52,7 +56,7 @@ export class ListingDoc {
 // even with @Transform and enableCircularCheck T ^ T
 export const listingDocConverter: FirestoreDataConverter<ListingDoc> = {
     fromFirestore(snapshot, options?) {
-        const listingDoc = snapshot.data(options) as ListingDoc & {image: string};
+        const listingDoc = snapshot.data(options) as ListingDoc & { image: string };
 
         return new ListingDoc(
             listingDoc.seller,
@@ -73,8 +77,8 @@ export const listingDocConverter: FirestoreDataConverter<ListingDoc> = {
 
         listingDoc.image = (listingDoc.image as StorageReference).fullPath;
 
-        return {...listingDoc};
-    }
+        return { ...listingDoc };
+    },
 };
 
 export class ListingCollection<T = ListingDoc> extends UserCollection<T> {
@@ -82,7 +86,10 @@ export class ListingCollection<T = ListingDoc> extends UserCollection<T> {
         userId: string,
         ...superParams: ConstructorParameters<typeof UserCollection<T>>
     ) {
-        const pathSegments = createPathSegments([userId, "listings"], superParams[2]);
+        const pathSegments = createPathSegments(
+            [userId, "listings"],
+            superParams[2]
+        );
 
         super(superParams[0], superParams[1], pathSegments);
     }
