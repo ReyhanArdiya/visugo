@@ -4,7 +4,15 @@ import {
     RulesTestEnvironment,
     TestEnvironmentConfig
 } from "@firebase/rules-unit-testing";
-import { Firestore } from "firebase/firestore";
+import {
+    doc,
+    DocumentReference,
+    DocumentSnapshot,
+    Firestore,
+    getDoc,
+    setDoc
+} from "firebase/firestore";
+import { UserDoc } from "../../models/user/user";
 
 export const getRulesTestEnv = async (config: TestEnvironmentConfig = {}) => {
     return await initializeTestEnvironment(config);
@@ -22,6 +30,7 @@ export interface MockAuthUser {
     user: RulesTestContext;
     db: Firestore;
     id: string;
+    firestore: ReturnType<RulesTestContext["firestore"]>;
 }
 
 export type MockUnauthUser = Omit<MockAuthUser, "id">;
@@ -35,7 +44,8 @@ export const getAuthUser = (
     return {
         user: authUser,
         db: mockDb(authUser),
-        id
+        id,
+        firestore: authUser.firestore()
     };
 };
 
@@ -44,8 +54,24 @@ export const getUnauthUser = (rules: RulesTestEnvironment): MockUnauthUser => {
 
     return {
         user: unauthUser,
-        db: mockDb(unauthUser)
+        db: mockDb(unauthUser),
+        firestore: unauthUser.firestore()
     };
+};
+
+type MockUserDoc = Pick<UserDoc, "uid">;
+
+export const setMockUserDoc = async (
+    authUser: MockAuthUser
+): Promise<DocumentSnapshot<UserDoc>> => {
+    const userRef = doc(
+        authUser.db,
+        `users/${authUser.id}`
+    ) as DocumentReference<MockUserDoc>;
+
+    await setDoc(userRef, { uid: authUser.id });
+
+    return await getDoc(userRef) as DocumentSnapshot<UserDoc>;
 };
 
 export const setupMockFirebase = async (
