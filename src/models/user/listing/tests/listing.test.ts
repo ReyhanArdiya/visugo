@@ -207,6 +207,7 @@ describe("ListingDoc schema validation", () => {
         });
     });
 
+    // CMT Too tired, already done by typescript anyways; byeehhh
     describe("client side", () => {
         it.todo(
             "allows when data has seller, title, description, image and created field"

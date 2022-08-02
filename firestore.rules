@@ -26,9 +26,36 @@ service cloud.firestore {
 
                     return fields.hasAll(requiredFields) && fields.hasOnly(requiredFields);
                 }
+
+                // CMT THis is hard to test since create & request.time could be different (e.g. from offline to online and
+                // miliseconds diff), so maybe imma just make created thru cloud functions
+                // function createdCurrentTime() {
+                //     return request.resource.data.created == request.time;
+                // }
+
+                function fieldsAreRightTypes(data) {
+                    return data.get("seller", path("/j89wefefw89")) is path &&
+                        data.get("title", "") is string &&
+                        data.get("description", "") is string &&
+                        data.get("image", "") is string &&
+                        data.get("created", timestamp.value(1)) is timestamp
+                }
+
+                function sellerExists(sellerPath) {
+                    return exists(sellerPath);
+                }
+
+
             allow read: if true;
-                allow create: if isAuth() && hasAllFields();
-                allow delete, update: if isAuth() && isSameUser();
+                allow create: if isAuth() &&
+                    hasAllFields() &&
+                    sellerExists(request.resource.data.seller) &&
+                    fieldsAreRightTypes(request.resource.data);
+                allow delete: if isAuth() &&
+                    isSameUser();
+                allow update: if isAuth() &&
+                    isSameUser() &&
+                    fieldsAreRightTypes(request.resource.data);
             }
         }
 
