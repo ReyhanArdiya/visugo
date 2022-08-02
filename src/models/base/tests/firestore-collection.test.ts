@@ -1,18 +1,18 @@
 import {
     assertSucceeds,
     RulesTestContext,
-    RulesTestEnvironment
+    RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {
     CollectionReference,
     DocumentReference,
     Firestore,
-    where
+    where,
 } from "firebase/firestore";
 import {
     cleanMockFirebase,
     mockDb,
-    setupMockFirebase
+    setupMockFirebase,
 } from "../../../tests/utils/firestore-tests-utils";
 import createBasicConverter from "../../../utils/firebase/client/firestore/create-basic-converter";
 import { BookCollection, BookDoc } from "./mock-data";
@@ -41,7 +41,10 @@ beforeEach(async () => {
     rulesTestEnv = mockFirebase.testEnv;
     authUser = {
         ...mockFirebase.authUser,
-        collection: new BookCollection(converter, mockDb(mockFirebase.authUser.user))
+        collection: new BookCollection(
+            converter,
+            mockDb(mockFirebase.authUser.user)
+        ),
     };
 });
 
@@ -80,7 +83,7 @@ describe("Base collection methods", () => {
         const docs = [
             new BookDoc("One book", "Oner", 2981),
             new BookDoc("Two book", "Oner", 2981),
-            new BookDoc("Three book", "Oner", 2981)
+            new BookDoc("Three book", "Oner", 2981),
         ];
 
         const refs: DocumentReference<BookDoc>[] = await authUser.collection.add(
@@ -105,7 +108,7 @@ describe("Base collection methods", () => {
         const books = [
             new BookDoc("One book", "Oner", 2981),
             new BookDoc("Two book", "Oner", 2981),
-            new BookDoc("Three book", "Oner", 2981)
+            new BookDoc("Three book", "Oner", 2981),
         ];
 
         await authUser.collection.add(...books);
@@ -123,7 +126,7 @@ describe("Base collection methods", () => {
             new BookDoc("One book", "Oner", 1999),
             new BookDoc("Two book", "Oner", 1985),
             new BookDoc("Three book", "Oner", 2050),
-            new BookDoc("Four book", "Oner", 2010)
+            new BookDoc("Four book", "Oner", 2010),
         ];
 
         await authUser.collection.add(...books);
@@ -143,7 +146,7 @@ describe("Base collection methods", () => {
         const { id } = await collection.add(book);
 
         await collection.updateDocById(id, {
-            author: "Danno"
+            author: "Danno",
         });
 
         const bookAfterUpdate = await collection.getDocById(id);
@@ -174,7 +177,7 @@ describe("Base collection methods", () => {
             new BookDoc("One book", "Oner", 1999),
             new BookDoc("Two book", "Oner", 1985),
             new BookDoc("Three book", "Oner", 2050),
-            new BookDoc("Four book", "Oner", 2010)
+            new BookDoc("Four book", "Oner", 2010),
         ];
 
         await collection.add(...books);

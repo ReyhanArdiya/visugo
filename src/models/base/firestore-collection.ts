@@ -13,7 +13,7 @@ import {
     query,
     UpdateData,
     updateDoc,
-    writeBatch
+    writeBatch,
 } from "firebase/firestore";
 
 /**
@@ -29,9 +29,7 @@ export abstract class FirestoreCollection<T extends DocumentData> {
         db: Firestore,
         pathSegments = [""]
     ) {
-        this.ref = collection(db, "/", ...pathSegments).withConverter(
-            converter
-        );
+        this.ref = collection(db, "/", ...pathSegments).withConverter(converter);
     }
 
     private get db() {
@@ -39,14 +37,14 @@ export abstract class FirestoreCollection<T extends DocumentData> {
     }
 
     /* Create */
-    public add(data: T): Promise<DocumentReference<T>>
-    public add(...data: T[]): Promise<DocumentReference<T>[]>
+    public add(data: T): Promise<DocumentReference<T>>;
+    public add(...data: T[]): Promise<DocumentReference<T>[]>;
     async add(...data: T[]) {
         const batch = writeBatch(this.db);
 
         const dataDocs = data.map(() => doc(this.ref));
 
-        data.forEach((d,i) => batch.set(dataDocs[i], d));
+        data.forEach((d, i) => batch.set(dataDocs[i], d));
 
         await batch.commit();
 
@@ -98,5 +96,3 @@ export abstract class FirestoreCollection<T extends DocumentData> {
         await this.clear(size);
     }
 }
-
-

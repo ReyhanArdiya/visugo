@@ -5,18 +5,17 @@ import { FirestoreCollection } from "../firestore-collection";
 export class BookDoc {
     [k: string]: unknown;
 
-    constructor(
-		public title: string,
-		public author: string,
-		public year: number
-    ){}
+    constructor(public title: string, public author: string, public year: number) {}
 }
 
 export class BookCollection<T = BookDoc> extends FirestoreCollection<T> {
     constructor(
         ...superParams: ConstructorParameters<typeof FirestoreCollection<T>>
     ) {
-        const pathSegments = createPathSegments(["DEVELOPMENT_TESTING_COLLECTION_ID"], superParams[2]);
+        const pathSegments = createPathSegments(
+            ["DEVELOPMENT_TESTING_COLLECTION_ID"],
+            superParams[2]
+        );
 
         super(superParams[0], superParams[1], pathSegments);
     }
