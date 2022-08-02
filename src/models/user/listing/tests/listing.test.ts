@@ -1,7 +1,7 @@
 import {
     assertFails,
     assertSucceeds,
-    RulesTestEnvironment
+    RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {
     addDoc,
@@ -10,12 +10,12 @@ import {
     deleteDoc,
     doc,
     DocumentReference,
+    DocumentSnapshot,
     getDoc,
     getDocs,
     query,
-    setDoc,
     updateDoc,
-    where
+    where,
 } from "firebase/firestore";
 import { ref } from "firebase/storage";
 import { ListingCollection, ListingDoc, listingDocConverter } from "..";
@@ -25,7 +25,7 @@ import {
     MockAuthUser,
     MockUnauthUser,
     setMockUserDoc,
-    setupMockFirebase
+    setupMockFirebase,
 } from "../../../../tests/utils/firestore-tests-utils";
 
 import { UserDoc } from "../../user";
@@ -67,6 +67,152 @@ describe("ListingDoc fields", () => {
                     where("image", "==", listingDoc.data()?.image.fullPath)
                 )
             )
+        );
+    });
+});
+
+describe("ListingDoc schema validation", () => {
+    describe("firestore rules", () => {
+        let seller: DocumentSnapshot<UserDoc>;
+        let correctListingDoc: ListingDoc;
+        let listingsCollection: CollectionReference;
+
+        beforeEach(async () => {
+            seller = await setMockUserDoc(authUser);
+            correctListingDoc = new ListingDoc(
+                doc(authUser.db, seller.ref.path) as DocumentReference<UserDoc>,
+                "shirt",
+                "A shirt",
+                ref(authUser.user.storage(), "some_shirt")
+            );
+            listingsCollection = collection(
+                authUser.db,
+                new ListingCollection(
+                    "schema_validation_test",
+                    listingDocConverter,
+                    authUser.db
+                ).ref.path
+            );
+        });
+
+        // REMEMBER! addListing without second param gives the right schemas
+        it("allows when data has seller, title, description, image and created fields", async () => {
+            await assertSucceeds(addListing(authUser));
+        });
+        it("denies when data has less fields than seller, title, description, image and created", async () => {
+            await assertFails(addDoc(listingsCollection, { title: "book" }));
+        });
+        it("denies when data has fields other than seller, title, description, image and created", async () => {
+            await assertFails(
+                addDoc(listingsCollection, {
+                    ...correctListingDoc,
+                    image: "img",
+                    meep: 1,
+                })
+            );
+        });
+
+        it("allows when seller is a DocumentReference to an existing seller", async () => {
+            await assertSucceeds(addListing(authUser));
+        });
+        it("denies when seller is a DocumentReference to a non-existing seller", async () => {
+            const collection = new ListingCollection(
+                authUser.id,
+                listingDocConverter,
+                authUser.db
+            );
+
+            const listingDoc = new ListingDoc(
+                doc(authUser.db, "users/non_existent") as DocumentReference<UserDoc>,
+                "shirt",
+                "A shirt",
+                ref(authUser.user.storage(), "some_shirt")
+            );
+
+            await assertFails(collection.add(listingDoc));
+        });
+        it("denies when seller is not a DocumentReference", async () => {
+            await assertFails(
+                addDoc(listingsCollection, {
+                    ...correctListingDoc,
+                    image: "shirt",
+                    seller: false,
+                })
+            );
+        });
+
+        it("allows when title is a string", async () => {
+            await assertSucceeds(addListing(authUser));
+        });
+        it("denies when title isn't a string", async () => {
+            await assertFails(
+                addDoc(listingsCollection, {
+                    ...correctListingDoc,
+                    image: "shirt",
+                    title: 3003,
+                })
+            );
+        });
+
+        it("allows when description is a string", async () => {
+            await assertSucceeds(addListing(authUser));
+        });
+        it("denies when description isn't a string", async () => {
+            await assertFails(
+                addDoc(listingsCollection, {
+                    ...correctListingDoc,
+                    image: "shirt",
+                    description: false,
+                })
+            );
+        });
+
+        it("allows when image is a string URL to a storage object (not checking if it exists or not)", async () => {
+            await assertSucceeds(addListing(authUser));
+        });
+        it("denies when image isn't a string", async () => {
+            await assertFails(
+                addDoc(listingsCollection, {
+                    ...correctListingDoc,
+                    image: 80085,
+                })
+            );
+        });
+
+        // CMT THis is hard to test since create & request.time could be different (e.g. from offline to online and
+        // miliseconds diff), so maybe imma just make created thru cloud functions
+        // it("allows when created is a Timestamp equals to when this request is made", async () => {
+        //     await assertSucceeds(addListing(authUser));
+        // });
+        // it("denies when created is not a Timestamp equals to when this request is made", async () => {
+        //     await assertFails(
+        //         addDoc(listingsCollection, {
+        //             ...correctListingDoc,
+        //             image: "shirt",
+        //             created: new Timestamp(Timestamp.now().seconds + 366700, 200),
+        //         })
+        //     );
+        // });
+        it("allows when created is a Timestamp", async () => {
+            await assertSucceeds(addListing(authUser));
+        });
+        it("denies when created is not a Timestamp", async () => {
+            await assertFails(
+                addDoc(listingsCollection, {
+                    ...correctListingDoc,
+                    image: "shirt",
+                    created: false,
+                })
+            );
+        });
+    });
+
+    describe("client side", () => {
+        it.todo(
+            "allows when data has seller, title, description, image and created field"
+        );
+        it.todo(
+            "denies when data doesn't have seller, title, description, image and created field"
         );
     });
 });

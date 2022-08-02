@@ -4,29 +4,30 @@ import {
     DocumentReference,
     getDocs,
     Query,
-    query
+    query,
 } from "firebase/firestore";
 import { ref } from "firebase/storage";
 import { ListingCollection, ListingDoc, listingDocConverter } from "..";
 import {
     MockAuthUser,
     MockUnauthUser,
-    setMockUserDoc
+    setMockUserDoc,
 } from "../../../../tests/utils/firestore-tests-utils";
 import { UserDoc } from "../../user";
 
-export const addListing = async (user: MockAuthUser) => {
+export const addListing = async (user: MockAuthUser, listingsDoc?: ListingDoc) => {
     const seller = await setMockUserDoc(user);
 
     const collection = new ListingCollection(user.id, listingDocConverter, user.db);
 
     return await collection.add(
-        new ListingDoc(
-            doc(user.db, seller.ref.path) as DocumentReference<UserDoc>,
-            "shirt",
-            "A shirt",
-            ref(user.user.storage(), "some_shirt")
-        )
+        listingsDoc ||
+            new ListingDoc(
+                doc(user.db, seller.ref.path) as DocumentReference<UserDoc>,
+                "shirt",
+                "A shirt",
+                ref(user.user.storage(), "some_shirt")
+            )
     );
 };
 
