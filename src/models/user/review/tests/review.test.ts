@@ -3,7 +3,7 @@ import {
     assertSucceeds,
     RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { doc } from "firebase/firestore";
+import { doc, DocumentReference } from "firebase/firestore";
 import { ReviewCollection, ReviewDoc, reviewDocConverter } from "..";
 import {
     cleanMockFirebase,
@@ -12,6 +12,7 @@ import {
     setMockUserDoc,
     setupMockFirebase,
 } from "../../../../tests/utils/firestore-tests-utils";
+import { UserDoc } from "../../user";
 import { addReview, listReviews } from "./utils";
 
 let rulesTestEnv: RulesTestEnvironment;
@@ -69,8 +70,20 @@ describe("ReviewDoc firestore schema validation", () => {
         await assertSucceeds(addMockReview());
     });
     it("denies when author is a DocumentReference to a non-existing user", async () => {
-        const nonExistingAUthor = doc(author.ref.parent, "Nope-nothing!");
-        await assertFails(addReview(authUser, nonExistingAUthor, correctReviewDoc));
+        const collection = new ReviewCollection(
+            authUser.id,
+            reviewDocConverter,
+            authUser.db
+        );
+
+        const reviewDoc = new ReviewDoc(
+            doc(authUser.db, "users/non_existent") as DocumentReference<UserDoc>,
+            2,
+            "A shirt",
+            "desc"
+        );
+
+        await assertFails(collection.add(reviewDoc));
     });
 
     it("allows when star is a number", async () => {
@@ -120,6 +133,19 @@ describe("ReviewDoc firestore schema validation", () => {
                 ...correctReviewDoc,
                 // @ts-expect-error: must be of different type
                 description: false,
+            })
+        );
+    });
+
+    it("allows when created is a Timestamp", async () => {
+        await assertSucceeds(addMockReview());
+    });
+    it("denies when created is not a Timestamp", async () => {
+        await assertFails(
+            addMockReview({
+                ...correctReviewDoc,
+                // @ts-expect-error: must be of different type
+                created: false,
             })
         );
     });
