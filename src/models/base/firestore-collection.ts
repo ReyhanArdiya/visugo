@@ -1,5 +1,6 @@
 import {
     collection,
+    collectionGroup,
     CollectionReference,
     deleteDoc,
     doc,
@@ -10,6 +11,7 @@ import {
     getDoc,
     getDocs,
     limit,
+    Query,
     query,
     UpdateData,
     updateDoc,
@@ -23,6 +25,11 @@ import {
  */
 export abstract class FirestoreCollection<T extends DocumentData> {
     public readonly ref: CollectionReference<T>;
+
+    /**
+     * The id of this collection in the db
+     */
+    public abstract readonly collectionId: string;
 
     constructor(
         converter: FirestoreDataConverter<T>,
@@ -62,6 +69,17 @@ export abstract class FirestoreCollection<T extends DocumentData> {
 
     async queryFrom(...queryConstraints: Parameters<typeof query>[1][]) {
         return await getDocs(query(this.ref, ...queryConstraints));
+    }
+
+    async queryFromCollectionGroup(
+        ...queryConstraints: Parameters<typeof query>[1][]
+    ) {
+        return await getDocs(
+            query(
+                collectionGroup(this.db, this.collectionId) as Query<T>,
+                ...queryConstraints
+            )
+        );
     }
 
     /* Update */

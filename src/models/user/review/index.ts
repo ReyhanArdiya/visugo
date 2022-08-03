@@ -39,6 +39,8 @@ export const reviewDocConverter: FirestoreDataConverter<ReviewDoc> = {
 };
 
 export class ReviewCollection<T = ReviewDoc> extends UserCollection<T> {
+    public collectionId = "reviews";
+
     constructor(
         userId: string,
         ...superParams: ConstructorParameters<typeof UserCollection<T>>

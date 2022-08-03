@@ -82,6 +82,8 @@ export const listingDocConverter: FirestoreDataConverter<ListingDoc> = {
 };
 
 export class ListingCollection<T = ListingDoc> extends UserCollection<T> {
+    public collectionId = "listings";
+
     constructor(
         userId: string,
         ...superParams: ConstructorParameters<typeof UserCollection<T>>
