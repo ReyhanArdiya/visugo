@@ -14,6 +14,8 @@ service cloud.firestore {
         match /users/{userId} {
             allow read, write: if isAuth();
 
+            // TODO refactor isSameUser, sellerExists and authorExists since they have duplicate logic
+
             // This match is for when we access a SINGLE listings collection
             match /listings/{listingId} {
                 function isSameUser() {
@@ -45,11 +47,57 @@ service cloud.firestore {
                     return exists(sellerPath);
                 }
 
-
-            allow read: if true;
+                allow read: if true;
                 allow create: if isAuth() &&
                     hasAllFields() &&
                     sellerExists(request.resource.data.seller) &&
+                    fieldsAreRightTypes(request.resource.data);
+                allow delete: if isAuth() &&
+                    isSameUser();
+                allow update: if isAuth() &&
+                    isSameUser() &&
+                    fieldsAreRightTypes(request.resource.data);
+            }
+
+            match /reviews/{reviewId} {
+                function isSameUser() {
+                    return request.auth.uid == get(resource.data.author).data.uid;
+                }
+
+                function hasAllFields() {
+                    let fields = request.resource.data.keys();
+                    let requiredFields = [
+                        "author",
+                        "star",
+                        "title",
+                        "description",
+                        "created"
+                    ];
+
+                    return fields.hasAll(requiredFields) &&
+                        fields.hasOnly(requiredFields);
+                }
+
+                function fieldsAreRightTypes(data) {
+                    let star = data.get("star", "");
+
+                    return data.get("author", path("/j89wefefw89")) is path &&
+                        star is int &&
+                        star >= 0 &&
+                        star <= 5 &&
+                        data.get("title", "") is string &&
+                        data.get("description", "") is string &&
+                        data.get("created", timestamp.value(1)) is timestamp
+                }
+
+                function authorExists(authorPath) {
+                    return exists(authorPath);
+                }
+
+                allow read: if true;
+                allow create: if isAuth() &&
+                    hasAllFields() &&
+                    authorExists(request.resource.data.author) &&
                     fieldsAreRightTypes(request.resource.data);
                 allow delete: if isAuth() &&
                     isSameUser();
@@ -61,6 +109,10 @@ service cloud.firestore {
 
         // This match is for when we access listings as CollectionGroup query
         match /{path=**}/listings/{listingId} {
+            allow read: if true;
+        }
+
+        match /{path=**}/reviews/{reviewsId} {
             allow read: if true;
         }
     }
