@@ -6,61 +6,50 @@ service cloud.firestore {
             return request.auth != null;
         }
 
+        function requestDataHasAllFields(requiredFields) {
+            let fields = request.resource.data.keys();
+
+            return fields.hasAll(requiredFields) && fields.hasOnly(requiredFields);
+        }
+
+        function isSameUserBasedOn(resourceUid) {
+            return request.auth.uid == resourceUid;
+        }
+
+        function userExists(userPath) {
+            return exists(userPath);
+        }
+
         // TEST
         match /{doc=**}/DEVELOPMENT_TESTING_COLLECTION_ID/{devDoc} {
             allow read, write: if true;
         }
 
         match /users/{userId} {
-            // TODO make hasAllFields just a function that takes requiredFields
-            function hasAllFields() {
-                let fields = request.resource.data.keys();
-                let requiredFields = ["uid"];
-
-                return fields.hasAll(requiredFields) && fields.hasOnly(requiredFields);
-            }
-
-            function isSameUser() {
-                return request.auth.uid == resource.data.uid;
-            }
-
-            function fieldsAreRightTypes(data) {
+            function userDocFieldsTypeValid(data) {
                 return data.get("uid", "") is string;
             }
 
             allow read: if isAuth();
             allow create: if isAuth() &&
-                hasAllFields() &&
-                request.auth.uid == request.resource.data.uid &&
-                fieldsAreRightTypes(request.resource.data);
+                requestDataHasAllFields(["uid"]) &&
+                isSameUserBasedOn(request.resource.data.uid) &&
+                userDocFieldsTypeValid(request.resource.data);
             allow delete: if isAuth() &&
-                isSameUser();
+                isSameUserBasedOn(resource.data.uid);
             allow update: if isAuth() &&
-                isSameUser() &&
-                fieldsAreRightTypes(request.resource.data);
-
-            // TODO refactor isSameUser, sellerExists and authorExists since they have duplicate logic
+                isSameUserBasedOn(resource.data.uid) &&
+                userDocFieldsTypeValid(request.resource.data);
 
             // This match is for when we access a SINGLE listings collection
             match /listings/{listingId} {
-                function isSameUser() {
-                    return request.auth.uid == get(resource.data.seller).data.uid;
-                }
-
-                function hasAllFields() {
-                    let fields = request.resource.data.keys();
-                    let requiredFields = ["seller", "title", "description", "image", "created"];
-
-                    return fields.hasAll(requiredFields) && fields.hasOnly(requiredFields);
-                }
-
                 // CMT THis is hard to test since create & request.time could be different (e.g. from offline to online and
                 // miliseconds diff), so maybe imma just make created thru cloud functions
                 // function createdCurrentTime() {
                 //     return request.resource.data.created == request.time;
                 // }
 
-                function fieldsAreRightTypes(data) {
+                function listingDocFieldsTypeValid(data) {
                     return data.get("seller", path("/j89wefefw89")) is path &&
                         data.get("title", "") is string &&
                         data.get("description", "") is string &&
@@ -68,42 +57,20 @@ service cloud.firestore {
                         data.get("created", timestamp.value(1)) is timestamp
                 }
 
-                function sellerExists(sellerPath) {
-                    return exists(sellerPath);
-                }
-
                 allow read: if true;
                 allow create: if isAuth() &&
-                    hasAllFields() &&
-                    sellerExists(request.resource.data.seller) &&
-                    fieldsAreRightTypes(request.resource.data);
+                    requestDataHasAllFields(["seller", "title", "description", "image", "created"]) &&
+                    userExists(request.resource.data.seller) &&
+                    listingDocFieldsTypeValid(request.resource.data);
                 allow delete: if isAuth() &&
-                    isSameUser();
+                    isSameUserBasedOn(get(resource.data.seller).data.uid);
                 allow update: if isAuth() &&
-                    isSameUser() &&
-                    fieldsAreRightTypes(request.resource.data);
+                    isSameUserBasedOn(get(resource.data.seller).data.uid) &&
+                    listingDocFieldsTypeValid(request.resource.data);
             }
 
             match /reviews/{reviewId} {
-                function isSameUser() {
-                    return request.auth.uid == get(resource.data.author).data.uid;
-                }
-
-                function hasAllFields() {
-                    let fields = request.resource.data.keys();
-                    let requiredFields = [
-                        "author",
-                        "star",
-                        "title",
-                        "description",
-                        "created"
-                    ];
-
-                    return fields.hasAll(requiredFields) &&
-                        fields.hasOnly(requiredFields);
-                }
-
-                function fieldsAreRightTypes(data) {
+                function reviewDocFieldsTypeValid(data) {
                     let star = data.get("star", "");
 
                     return data.get("author", path("/j89wefefw89")) is path &&
@@ -115,20 +82,16 @@ service cloud.firestore {
                         data.get("created", timestamp.value(1)) is timestamp
                 }
 
-                function authorExists(authorPath) {
-                    return exists(authorPath);
-                }
-
                 allow read: if true;
                 allow create: if isAuth() &&
-                    hasAllFields() &&
-                    authorExists(request.resource.data.author) &&
-                    fieldsAreRightTypes(request.resource.data);
+                    requestDataHasAllFields(["author", "star", "title", "description", "created"]) &&
+                    userExists(request.resource.data.author) &&
+                    reviewDocFieldsTypeValid(request.resource.data);
                 allow delete: if isAuth() &&
-                    isSameUser();
+                    isSameUserBasedOn(get(resource.data.author).data.uid);
                 allow update: if isAuth() &&
-                    isSameUser() &&
-                    fieldsAreRightTypes(request.resource.data);
+                    isSameUserBasedOn(get(resource.data.author).data.uid) &&
+                    reviewDocFieldsTypeValid(request.resource.data);
             }
         }
 
