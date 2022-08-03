@@ -25,6 +25,7 @@ export const addListing = async (user: MockAuthUser, listingsDoc?: ListingDoc) =
             new ListingDoc(
                 doc(user.db, seller.ref.path) as DocumentReference<UserDoc>,
                 "shirt",
+                4.99,
                 "A shirt",
                 ref(user.user.storage(), "some_shirt")
             )
@@ -40,18 +41,21 @@ export const addListings = async (user: MockAuthUser) => {
         new ListingDoc(
             doc(user.db, seller.ref.path) as DocumentReference<UserDoc>,
             "shirt",
+            4.99,
             "A shirt",
             ref(user.user.storage(), "some_shirt")
         ),
         new ListingDoc(
             doc(user.db, seller.ref.path) as DocumentReference<UserDoc>,
             "book",
+            4.99,
             "A book",
             ref(user.user.storage(), "some_book")
         ),
         new ListingDoc(
             doc(user.db, seller.ref.path) as DocumentReference<UserDoc>,
             "pants",
+            4.99,
             "A pair of pants",
             ref(user.user.storage(), "some_pants")
         )

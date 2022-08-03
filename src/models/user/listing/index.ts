@@ -40,6 +40,7 @@ export class ListingDoc {
         // public seller: { username: UserDoc["username"]; uid: UserDoc["uid"] },
         seller: DocumentReference<UserDoc>,
         title: string,
+        public price: number,
         description: string,
         image: StorageReference,
         created = Timestamp.now()
@@ -61,6 +62,7 @@ export const listingDocConverter: FirestoreDataConverter<ListingDoc> = {
         return new ListingDoc(
             listingDoc.seller,
             listingDoc.title,
+            listingDoc.price,
             listingDoc.description,
             ref(getStorage(getFirebaseClient()), listingDoc.image),
             listingDoc.created

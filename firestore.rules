@@ -51,6 +51,7 @@ service cloud.firestore {
 
                 function listingDocFieldsTypeValid(data) {
                     return data.get("seller", path("/j89wefefw89")) is path &&
+                        data.get("price", 0) is number &&
                         data.get("title", "") is string &&
                         data.get("description", "") is string &&
                         data.get("image", "") is string &&
@@ -59,7 +60,7 @@ service cloud.firestore {
 
                 allow read: if true;
                 allow create: if isAuth() &&
-                    requestDataHasAllFields(["seller", "title", "description", "image", "created"]) &&
+                    requestDataHasAllFields(["seller", "price", "title", "description", "image", "created"]) &&
                     userExists(request.resource.data.seller) &&
                     listingDocFieldsTypeValid(request.resource.data);
                 allow delete: if isAuth() &&

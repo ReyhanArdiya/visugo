@@ -82,6 +82,7 @@ describe("ListingDoc schema validation", () => {
             correctListingDoc = new ListingDoc(
                 doc(authUser.db, seller.ref.path) as DocumentReference<UserDoc>,
                 "shirt",
+                4.99,
                 "A shirt",
                 ref(authUser.user.storage(), "some_shirt")
             );
@@ -96,10 +97,10 @@ describe("ListingDoc schema validation", () => {
         });
 
         // REMEMBER! addListing without second param gives the right schemas
-        it("allows when data has seller, title, description, image and created fields", async () => {
+        it("allows when data has seller, price, title, description, image and created fields", async () => {
             await assertSucceeds(addListing(authUser));
         });
-        it("denies when data has less fields than seller, title, description, image and created", async () => {
+        it("denies when data has less fields than seller, price, title, description, image and created", async () => {
             await assertFails(addDoc(listingsCollection, { title: "book" }));
         });
         it("denies when data has fields other than seller, title, description, image and created", async () => {
@@ -125,6 +126,7 @@ describe("ListingDoc schema validation", () => {
             const listingDoc = new ListingDoc(
                 doc(authUser.db, "users/non_existent") as DocumentReference<UserDoc>,
                 "shirt",
+                4.99,
                 "A shirt",
                 ref(authUser.user.storage(), "some_shirt")
             );
@@ -137,6 +139,19 @@ describe("ListingDoc schema validation", () => {
                     ...correctListingDoc,
                     image: "shirt",
                     seller: false,
+                })
+            );
+        });
+
+        it("allows when price is a number", async () => {
+            await assertSucceeds(addListing(authUser));
+        });
+        it("denies when price isn't a number", async () => {
+            await assertFails(
+                addDoc(listingsCollection, {
+                    ...correctListingDoc,
+                    image: "shirt",
+                    price: "3003",
                 })
             );
         });
@@ -244,6 +259,7 @@ describe("ListingCollection rules", () => {
                 new ListingDoc(
                     mockUser.ref as DocumentReference<UserDoc>,
                     "Some shirt",
+                    2.99,
                     "Some desc",
                     ref(authUser.user.storage(), "some_image")
                 )
@@ -273,6 +289,7 @@ describe("ListingCollection rules", () => {
                 new ListingDoc(
                     u1.ref,
                     "Book",
+                    19.9,
                     "A book",
                     ref(u1AuthUser.user.storage(), "book_img")
                 )
@@ -281,6 +298,7 @@ describe("ListingCollection rules", () => {
                 new ListingDoc(
                     u2.ref,
                     "Booketh",
+                    29.9,
                     "A booketh",
                     ref(u2AuthUser.user.storage(), "booketh_img")
                 )
@@ -312,6 +330,7 @@ describe("ListingCollection rules", () => {
                 new ListingDoc(
                     u1.ref,
                     "Book",
+                    14.29,
                     "A book",
                     ref(u1AuthUser.user.storage(), "book_img")
                 )
@@ -320,6 +339,7 @@ describe("ListingCollection rules", () => {
                 new ListingDoc(
                     u2.ref,
                     "Booketh",
+                    4.29,
                     "A booketh",
                     ref(u2AuthUser.user.storage(), "booketh_img")
                 )
@@ -351,6 +371,7 @@ describe("ListingCollection rules", () => {
             listingDoc = new ListingDoc(
                 doc(unauthUser.db, "user", "norr") as DocumentReference<UserDoc>,
                 "nope",
+                4.99,
                 "naur gurl",
                 ref(unauthUser.user.storage(), "naurr")
             );
