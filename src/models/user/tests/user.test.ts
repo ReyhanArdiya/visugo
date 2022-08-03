@@ -3,6 +3,7 @@ import {
     assertSucceeds,
     RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
+import { FirebaseError } from "firebase/app";
 
 import {
     cleanMockFirebase,
@@ -31,8 +32,8 @@ describe("UserDoc firestore schema validation", () => {
     it("allows when data has uid", async () => {
         await assertSucceeds(addUser(authUser));
     });
-    it("denies when data has less fields than uid", async () => {
-        await assertFails(addUser(authUser, {}));
+    it("throws when data has less fields than uid", async () => {
+        await expect(addUser(authUser, {})).rejects.toThrow(FirebaseError);
     });
     it("denies when data has more fields than uid", async () => {
         await assertFails(

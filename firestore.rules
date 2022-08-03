@@ -12,7 +12,32 @@ service cloud.firestore {
         }
 
         match /users/{userId} {
-            allow read, write: if isAuth();
+            // TODO make hasAllFields just a function that takes requiredFields
+            function hasAllFields() {
+                let fields = request.resource.data.keys();
+                let requiredFields = ["uid"];
+
+                return fields.hasAll(requiredFields) && fields.hasOnly(requiredFields);
+            }
+
+            function isSameUser() {
+                return request.auth.uid == resource.data.uid;
+            }
+
+            function fieldsAreRightTypes(data) {
+                return data.get("uid", "") is string;
+            }
+
+            allow read: if isAuth();
+            allow create: if isAuth() &&
+                hasAllFields() &&
+                request.auth.uid == request.resource.data.uid &&
+                fieldsAreRightTypes(request.resource.data);
+            allow delete: if isAuth() &&
+                isSameUser();
+            allow update: if isAuth() &&
+                isSameUser() &&
+                fieldsAreRightTypes(request.resource.data);
 
             // TODO refactor isSameUser, sellerExists and authorExists since they have duplicate logic
 
