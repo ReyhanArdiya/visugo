@@ -39,7 +39,7 @@ export abstract class FirestoreCollection<T extends DocumentData> {
         this.ref = collection(db, "/", ...pathSegments).withConverter(converter);
     }
 
-    private get db() {
+    protected get db() {
         return this.ref.firestore;
     }
 
