@@ -4,7 +4,7 @@ import createPathSegments from "../../../utils/firebase/client/firestore/create-
 import { DocumentReference, Timestamp } from "firebase/firestore";
 import { ref, StorageReference } from "firebase/storage";
 import getFirebaseClient from "../../../utils/firebase/client/get-firebase-client";
-import getListingFileId from "../../../utils/firebase/client/storage/get-listing-file-id";
+import { getListingFileId } from "../../../utils/firebase/client/storage/listings";
 import getStorageClient from "../../../utils/firebase/client/storage/get-storage-client";
 import { UserCollection, UserDoc } from "../user";
 
@@ -18,7 +18,6 @@ export class ListingDoc {
      * Image is stored as string in firestore db but StorageReference in this class.
      */
     private _image: StorageReference;
-    private imagesFolderRef: StorageReference;
 
     constructor(
         // CMT we could Denormalize this but i wanna start denormalizing once i learn cloud functions for easier sync
@@ -30,19 +29,14 @@ export class ListingDoc {
         image: StorageReference,
         public readonly created = Timestamp.now()
     ) {
-        this.imagesFolderRef = ref(storage, `users/${seller.id}/listings`);
-        this._image = this.getImageFolderRef(image);
-    }
-
-    private getImageFolderRef(value: StorageReference) {
-        return ref(this.imagesFolderRef, getListingFileId(value));
+        this._image = getListingFileId(storage, this.seller.id, image);
     }
 
     public get image(): StorageReference {
         return this._image;
     }
     public set image(value: StorageReference) {
-        this._image = this.getImageFolderRef(value);
+        this._image = getListingFileId(storage, this.seller.id, value);
     }
 }
 
