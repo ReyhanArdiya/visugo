@@ -2,10 +2,15 @@ import { FirestoreDataConverter } from "firebase/firestore";
 import createPathSegments from "../../../utils/firebase/client/firestore/create-path-segments";
 
 import { DocumentReference, Timestamp } from "firebase/firestore";
-import { getStorage, ref, StorageReference } from "firebase/storage";
+import { ref, StorageReference } from "firebase/storage";
 import getFirebaseClient from "../../../utils/firebase/client/get-firebase-client";
+import getListingFileId from "../../../utils/firebase/client/storage/get-listing-file-id";
+import getStorageClient from "../../../utils/firebase/client/storage/get-storage-client";
 import { UserCollection, UserDoc } from "../user";
 
+const storage = getStorageClient(getFirebaseClient());
+
+// TODO tidy up this code okay
 export class ListingDoc {
     [k: string]: unknown;
 
@@ -30,7 +35,8 @@ export class ListingDoc {
     // })
     // Image is stored as string in firestore model but StorageReference in this model,
     // bcz firestore can't keep StorageReference
-    public image: StorageReference;
+    private _image: StorageReference;
+    private imagesFolderRef: StorageReference;
 
     // @Transform(({ value }) => value)
     public created: Timestamp;
@@ -48,8 +54,20 @@ export class ListingDoc {
         this.seller = seller;
         this.title = title;
         this.description = description;
-        this.image = image;
+        this.imagesFolderRef = ref(storage, `users/${seller.id}/listings`);
+        this._image = this.getImageFolderRef(image);
         this.created = created;
+    }
+
+    private getImageFolderRef(value: StorageReference) {
+        return ref(this.imagesFolderRef, getListingFileId(value));
+    }
+
+    public get image(): StorageReference {
+        return this._image;
+    }
+    public set image(value: StorageReference) {
+        this._image = this.getImageFolderRef(value);
     }
 }
 
@@ -64,7 +82,7 @@ export const listingDocConverter: FirestoreDataConverter<ListingDoc> = {
             listingDoc.title,
             listingDoc.price,
             listingDoc.description,
-            ref(getStorage(getFirebaseClient()), listingDoc.image),
+            ref(storage, listingDoc.image),
             listingDoc.created
         );
         // return plainToClass(ListingDoc, (snapshot.data(options)), {enableCircularCheck: true});
@@ -77,9 +95,16 @@ export const listingDocConverter: FirestoreDataConverter<ListingDoc> = {
         //     enableCircularCheck: true
         // });
 
-        listingDoc.image = (listingDoc.image as StorageReference).fullPath;
+        const { created, description, price, seller, title } = listingDoc;
 
-        return { ...listingDoc };
+        return {
+            created,
+            description,
+            price,
+            seller,
+            title,
+            image: (listingDoc.image as StorageReference).fullPath,
+        };
     },
 };
 

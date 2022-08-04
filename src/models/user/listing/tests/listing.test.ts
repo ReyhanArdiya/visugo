@@ -69,6 +69,14 @@ describe("ListingDoc fields", () => {
             )
         );
     });
+
+    it("stores StorageReference fullPath with the pattern users/{userId}/listings/{listingId}", async () => {
+        const listingDoc = await getDoc(await addListing(authUser));
+
+        const folderPattern = /^users\/.*\/listings\/.*$/;
+
+        expect(listingDoc.data()?.image.fullPath).toMatch(folderPattern);
+    });
 });
 
 describe("ListingDoc schema validation", () => {
@@ -183,6 +191,9 @@ describe("ListingDoc schema validation", () => {
         });
 
         it("allows when image is a string URL to a storage object (not checking if it exists or not)", async () => {
+            await assertSucceeds(addListing(authUser));
+        });
+        it("allows when image is a string URL with the pattern users/{userId}/listings/{listingId}", async () => {
             await assertSucceeds(addListing(authUser));
         });
         it("denies when image isn't a string", async () => {
