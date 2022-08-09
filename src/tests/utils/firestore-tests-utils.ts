@@ -12,6 +12,7 @@ import {
     getDoc,
     setDoc,
 } from "firebase/firestore";
+import { FirebaseStorage } from "firebase/storage";
 import { UserDoc } from "../../models/user/user";
 
 export const getRulesTestEnv = async (config: TestEnvironmentConfig = {}) => {
@@ -31,6 +32,7 @@ export interface MockAuthUser {
     db: Firestore;
     id: string;
     firestore: ReturnType<RulesTestContext["firestore"]>;
+    storage: FirebaseStorage;
 }
 
 export type MockUnauthUser = Omit<MockAuthUser, "id">;
@@ -46,6 +48,7 @@ export const getAuthUser = (
         db: mockDb(authUser),
         id,
         firestore: authUser.firestore(),
+        storage: authUser.storage(),
     };
 };
 
@@ -56,6 +59,7 @@ export const getUnauthUser = (rules: RulesTestEnvironment): MockUnauthUser => {
         user: unauthUser,
         db: mockDb(unauthUser),
         firestore: unauthUser.firestore(),
+        storage: unauthUser.storage(),
     };
 };
 
