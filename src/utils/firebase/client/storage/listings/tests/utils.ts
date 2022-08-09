@@ -14,13 +14,13 @@ export const createPngFile = () => {
 };
 
 export const uploadJpg = async (user: MockAuthUser, file = createJpgFile()) => {
-    return await uploadListingImage(user.user.storage(), user.id, file);
+    return await uploadListingImage(user.storage, user.id, file);
 };
 
 export const uploadJpeg = async (user: MockAuthUser, file = createJpegFile()) => {
-    return await uploadListingImage(user.user.storage(), user.id, file);
+    return await uploadListingImage(user.storage, user.id, file);
 };
 
 export const uploadPng = async (user: MockAuthUser, file = createPngFile()) => {
-    return await uploadListingImage(user.user.storage(), user.id, file);
+    return await uploadListingImage(user.storage, user.id, file);
 };
