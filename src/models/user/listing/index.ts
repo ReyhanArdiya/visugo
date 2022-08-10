@@ -1,16 +1,15 @@
-import { FirestoreDataConverter } from "firebase/firestore";
-import createPathSegments from "../../../utils/firebase/client/firestore/create-path-segments";
-
-import { DocumentReference, Timestamp } from "firebase/firestore";
+import {
+    DocumentReference,
+    FirestoreDataConverter,
+    Timestamp,
+} from "firebase/firestore";
 import { ref, StorageReference } from "firebase/storage";
+import createPathSegments from "../../../utils/firebase/client/firestore/create-path-segments";
 import getFirebaseClient from "../../../utils/firebase/client/get-firebase-client";
-import { getListingFileId } from "../../../utils/firebase/client/storage/listings";
 import getStorageClient from "../../../utils/firebase/client/storage/get-storage-client";
+import { getListingFileId } from "../../../utils/firebase/client/storage/listings";
 import { UserCollection, UserDoc } from "../user";
 
-const storage = getStorageClient(getFirebaseClient());
-
-// TODO tidy up this code okay
 export class ListingDoc {
     [k: string]: unknown;
 
@@ -29,15 +28,25 @@ export class ListingDoc {
         image: StorageReference,
         public readonly created = Timestamp.now()
     ) {
-        this._image = getListingFileId(storage, this.seller.id, image);
+        this._image = getListingFileId(
+            ListingDoc.storage,
+            this.seller.id,
+            image.name
+        );
     }
 
     public get image(): StorageReference {
         return this._image;
     }
     public set image(value: StorageReference) {
-        this._image = getListingFileId(storage, this.seller.id, value);
+        this._image = getListingFileId(
+            ListingDoc.storage,
+            this.seller.id,
+            value.name
+        );
     }
+
+    static storage = getStorageClient(getFirebaseClient());
 }
 
 // XXX class transformers doesn't work well with DocumentReference,
@@ -51,7 +60,7 @@ export const listingDocConverter: FirestoreDataConverter<ListingDoc> = {
             listingDoc.title,
             listingDoc.price,
             listingDoc.description,
-            ref(storage, listingDoc.image),
+            ref(ListingDoc.storage, listingDoc.image),
             listingDoc.created
         );
     },
