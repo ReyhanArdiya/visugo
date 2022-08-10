@@ -58,11 +58,17 @@ service cloud.firestore {
                         data.get("created", timestamp.value(1)) is timestamp
                 }
 
+                function imagePathIsValid(data) {
+                    // users/{userId}/listings/{listingId}
+                    return data.get("image", "").matches("^users[/].*[/]listings[/].*$");
+                }
+
                 allow read: if true;
                 allow create: if isAuth() &&
                     requestDataHasAllFields(["seller", "price", "title", "description", "image", "created"]) &&
                     userExists(request.resource.data.seller) &&
-                    listingDocFieldsTypeValid(request.resource.data);
+                    listingDocFieldsTypeValid(request.resource.data) &&
+                    imagePathIsValid(request.resource.data);
                 allow delete: if isAuth() &&
                     isSameUserBasedOn(get(resource.data.seller).data.uid);
                 allow update: if isAuth() &&

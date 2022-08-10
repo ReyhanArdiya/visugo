@@ -1,56 +1,52 @@
-import { FirestoreDataConverter } from "firebase/firestore";
+import {
+    DocumentReference,
+    FirestoreDataConverter,
+    Timestamp,
+} from "firebase/firestore";
+import { ref, StorageReference } from "firebase/storage";
 import createPathSegments from "../../../utils/firebase/client/firestore/create-path-segments";
-
-import { DocumentReference, Timestamp } from "firebase/firestore";
-import { getStorage, ref, StorageReference } from "firebase/storage";
 import getFirebaseClient from "../../../utils/firebase/client/get-firebase-client";
+import getStorageClient from "../../../utils/firebase/client/storage/get-storage-client";
+import { getListingFileId } from "../../../utils/firebase/client/storage/listings";
 import { UserCollection, UserDoc } from "../user";
 
 export class ListingDoc {
     [k: string]: unknown;
 
-    // CMT we could Denormalize seller with username and uid only but i wanna start denormalizing once i learn cloud functions for easier sync
-    // public seller: { username: UserDoc["username"]; uid: UserDoc["uid"] },
-    // @Transform(({ value }) => value)
-    public seller: DocumentReference<UserDoc>;
-    public title: string;
-    public description: string;
-
-    // @Transform(({ type, value }) => {
-    //     if (type === TransformationType.CLASS_TO_PLAIN) {
-    //         const storageReference = value as StorageReference;
-
-    //         return storageReference.fullPath;
-    //     } else if (type === TransformationType.PLAIN_TO_CLASS) {
-    //         const fullPath = value as string;
-
-    //         // TODO make getStorage utils after learning it
-    //         return ref(getStorage(), fullPath);
-    //     }
-    // })
-    // Image is stored as string in firestore model but StorageReference in this model,
-    // bcz firestore can't keep StorageReference
-    public image: StorageReference;
-
-    // @Transform(({ value }) => value)
-    public created: Timestamp;
+    /**
+     * Image is stored as string in firestore db but StorageReference in this class.
+     */
+    private _image: StorageReference;
 
     constructor(
         // CMT we could Denormalize this but i wanna start denormalizing once i learn cloud functions for easier sync
         // public seller: { username: UserDoc["username"]; uid: UserDoc["uid"] },
-        seller: DocumentReference<UserDoc>,
-        title: string,
+        public seller: DocumentReference<UserDoc>,
+        public title: string,
         public price: number,
-        description: string,
+        public description: string,
         image: StorageReference,
-        created = Timestamp.now()
+        public readonly created = Timestamp.now()
     ) {
-        this.seller = seller;
-        this.title = title;
-        this.description = description;
-        this.image = image;
-        this.created = created;
+        this._image = getListingFileId(
+            ListingDoc.storage,
+            this.seller.id,
+            image.name
+        );
     }
+
+    public get image(): StorageReference {
+        return this._image;
+    }
+    public set image(value: StorageReference) {
+        this._image = getListingFileId(
+            ListingDoc.storage,
+            this.seller.id,
+            value.name
+        );
+    }
+
+    static storage = getStorageClient(getFirebaseClient());
 }
 
 // XXX class transformers doesn't work well with DocumentReference,
@@ -64,22 +60,22 @@ export const listingDocConverter: FirestoreDataConverter<ListingDoc> = {
             listingDoc.title,
             listingDoc.price,
             listingDoc.description,
-            ref(getStorage(getFirebaseClient()), listingDoc.image),
+            ref(ListingDoc.storage, listingDoc.image),
             listingDoc.created
         );
-        // return plainToClass(ListingDoc, (snapshot.data(options)), {enableCircularCheck: true});
     },
 
     toFirestore(listingDoc) {
-        // CMT DocumentRefs seems to cause maximum callstacke errors, enableCircularCheck
-        // fixes this
-        // return instanceToPlain(listingDoc, {
-        //     enableCircularCheck: true
-        // });
+        const { created, description, price, seller, title } = listingDoc;
 
-        listingDoc.image = (listingDoc.image as StorageReference).fullPath;
-
-        return { ...listingDoc };
+        return {
+            created,
+            description,
+            price,
+            seller,
+            title,
+            image: (listingDoc.image as StorageReference).fullPath,
+        };
     },
 };
 

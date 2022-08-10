@@ -69,12 +69,24 @@ describe("ListingDoc fields", () => {
             )
         );
     });
+
+    it("stores StorageReference fullPath with the pattern users/{userId}/listings/{listingId}", async () => {
+        const listingDoc = await getDoc(await addListing(authUser));
+
+        const folderPattern = /^users\/.*\/listings\/.*$/;
+
+        expect(listingDoc.data()?.image.fullPath).toMatch(folderPattern);
+    });
 });
 
 describe("ListingDoc schema validation", () => {
     describe("firestore rules", () => {
         let seller: DocumentSnapshot<UserDoc>;
         let correctListingDoc: ListingDoc;
+        let correctListingDocWOutPrivates: Omit<
+            ListingDoc,
+            "_image" | "imagesFolderRef"
+        >;
         let listingsCollection: CollectionReference;
 
         beforeEach(async () => {
@@ -86,6 +98,19 @@ describe("ListingDoc schema validation", () => {
                 "A shirt",
                 ref(authUser.user.storage(), "some_shirt")
             );
+
+            /**
+             * This is neccessary since _image and imagesFolderRef can't be stored in firestore,
+             * but our {@link listingDocConverter} handles removes them already.
+             */
+            correctListingDocWOutPrivates = {
+                seller: correctListingDoc.seller,
+                title: correctListingDoc.title,
+                price: correctListingDoc.price,
+                description: correctListingDoc.description,
+                image: correctListingDoc.image,
+                created: correctListingDoc.created,
+            };
             listingsCollection = collection(
                 authUser.db,
                 new ListingCollection(
@@ -106,7 +131,7 @@ describe("ListingDoc schema validation", () => {
         it("denies when data has fields other than seller, title, description, image and created", async () => {
             await assertFails(
                 addDoc(listingsCollection, {
-                    ...correctListingDoc,
+                    ...correctListingDocWOutPrivates,
                     image: "img",
                     meep: 1,
                 })
@@ -136,7 +161,7 @@ describe("ListingDoc schema validation", () => {
         it("denies when seller is not a DocumentReference", async () => {
             await assertFails(
                 addDoc(listingsCollection, {
-                    ...correctListingDoc,
+                    ...correctListingDocWOutPrivates,
                     image: "shirt",
                     seller: false,
                 })
@@ -149,7 +174,7 @@ describe("ListingDoc schema validation", () => {
         it("denies when price isn't a number", async () => {
             await assertFails(
                 addDoc(listingsCollection, {
-                    ...correctListingDoc,
+                    ...correctListingDocWOutPrivates,
                     image: "shirt",
                     price: "3003",
                 })
@@ -162,7 +187,7 @@ describe("ListingDoc schema validation", () => {
         it("denies when title isn't a string", async () => {
             await assertFails(
                 addDoc(listingsCollection, {
-                    ...correctListingDoc,
+                    ...correctListingDocWOutPrivates,
                     image: "shirt",
                     title: 3003,
                 })
@@ -175,7 +200,7 @@ describe("ListingDoc schema validation", () => {
         it("denies when description isn't a string", async () => {
             await assertFails(
                 addDoc(listingsCollection, {
-                    ...correctListingDoc,
+                    ...correctListingDocWOutPrivates,
                     image: "shirt",
                     description: false,
                 })
@@ -185,10 +210,13 @@ describe("ListingDoc schema validation", () => {
         it("allows when image is a string URL to a storage object (not checking if it exists or not)", async () => {
             await assertSucceeds(addListing(authUser));
         });
+        it("allows when image is a string URL with the pattern users/{userId}/listings/{listingId}", async () => {
+            await assertSucceeds(addListing(authUser));
+        });
         it("denies when image isn't a string", async () => {
             await assertFails(
                 addDoc(listingsCollection, {
-                    ...correctListingDoc,
+                    ...correctListingDocWOutPrivates,
                     image: 80085,
                 })
             );
@@ -202,7 +230,7 @@ describe("ListingDoc schema validation", () => {
         // it("denies when created is not a Timestamp equals to when this request is made", async () => {
         //     await assertFails(
         //         addDoc(listingsCollection, {
-        //             ...correctListingDoc,
+        //             ...correctListingDocWOutPrivates,
         //             image: "shirt",
         //             created: new Timestamp(Timestamp.now().seconds + 366700, 200),
         //         })
@@ -214,7 +242,7 @@ describe("ListingDoc schema validation", () => {
         it("denies when created is not a Timestamp", async () => {
             await assertFails(
                 addDoc(listingsCollection, {
-                    ...correctListingDoc,
+                    ...correctListingDocWOutPrivates,
                     image: "shirt",
                     created: false,
                 })
