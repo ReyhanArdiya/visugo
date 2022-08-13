@@ -8,29 +8,29 @@ import { connectStorageEmulator, getStorage } from "firebase/storage";
  *
  */
 const setupLocalEmulator = (app: FirebaseApp) => {
-	if (
-		process.env.NODE_ENV !== "production" &&
+    if (
+        process.env.NODE_ENV !== "production" &&
         process.env.NEXT_PUBLIC_EMULATOR_FIRESTORE_PORT &&
         process.env.NEXT_PUBLIC_EMULATOR_AUTH_PORT &&
         process.env.NEXT_PUBLIC_EMULATOR_STORAGE_PORT
-	) {
-		connectFirestoreEmulator(
-			getFirestore(app),
-			"localhost",
-			+process.env.NEXT_PUBLIC_EMULATOR_FIRESTORE_PORT
-		);
+    ) {
+        connectFirestoreEmulator(
+            getFirestore(app),
+            "localhost",
+            +process.env.NEXT_PUBLIC_EMULATOR_FIRESTORE_PORT
+        );
 
-		connectAuthEmulator(
-			getAuth(app),
-			`http://localhost:${process.env.NEXT_PUBLIC_EMULATOR_AUTH_PORT}`
-		);
+        connectAuthEmulator(
+            getAuth(app),
+            `http://localhost:${process.env.NEXT_PUBLIC_EMULATOR_AUTH_PORT}`
+        );
 
-		connectStorageEmulator(
-			getStorage(app),
-			"localhost",
-			+process.env.NEXT_PUBLIC_EMULATOR_STORAGE_PORT
-		);
-	}
+        connectStorageEmulator(
+            getStorage(app),
+            "localhost",
+            +process.env.NEXT_PUBLIC_EMULATOR_STORAGE_PORT
+        );
+    }
 };
 
 export default setupLocalEmulator;

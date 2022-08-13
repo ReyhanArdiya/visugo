@@ -1,0 +1,114 @@
+rules_version = '2';
+
+service cloud.firestore {
+    match /databases/{database}/documents {
+        function isAuth() {
+            return request.auth != null;
+        }
+
+        function requestDataHasAllFields(requiredFields) {
+            let fields = request.resource.data.keys();
+
+            return fields.hasAll(requiredFields) && fields.hasOnly(requiredFields);
+        }
+
+        function isSameUserBasedOn(resourceUid) {
+            return request.auth.uid == resourceUid;
+        }
+
+        function userExists(userPath) {
+            return exists(userPath);
+        }
+
+        // TEST
+        match /{doc=**}/DEVELOPMENT_TESTING_COLLECTION_ID/{devDoc} {
+            allow read, write: if true;
+        }
+
+        match /users/{userId} {
+            function userDocFieldsTypeValid(data) {
+                return data.get("uid", "") is string;
+            }
+
+            allow read: if isAuth();
+            allow create: if isAuth() &&
+                requestDataHasAllFields(["uid"]) &&
+                isSameUserBasedOn(request.resource.data.uid) &&
+                userDocFieldsTypeValid(request.resource.data);
+            allow delete: if isAuth() &&
+                isSameUserBasedOn(resource.data.uid);
+            allow update: if isAuth() &&
+                isSameUserBasedOn(resource.data.uid) &&
+                userDocFieldsTypeValid(request.resource.data);
+
+            // This match is for when we access a SINGLE listings collection
+            match /listings/{listingId} {
+                // CMT THis is hard to test since create & request.time could be different (e.g. from offline to online and
+                // miliseconds diff), so maybe imma just make created thru cloud functions
+                // function createdCurrentTime() {
+                //     return request.resource.data.created == request.time;
+                // }
+
+                function listingDocFieldsTypeValid(data) {
+                    return data.get("seller", path("/j89wefefw89")) is path &&
+                        data.get("price", 0) is number &&
+                        data.get("title", "") is string &&
+                        data.get("description", "") is string &&
+                        data.get("image", "") is string &&
+                        data.get("created", timestamp.value(1)) is timestamp
+                }
+
+                function imagePathIsValid(data) {
+                    // users/{userId}/listings/{listingId}
+                    return data.get("image", "").matches("^users[/].*[/]listings[/].*$");
+                }
+
+                allow read: if true;
+                allow create: if isAuth() &&
+                    requestDataHasAllFields(["seller", "price", "title", "description", "image", "created"]) &&
+                    userExists(request.resource.data.seller) &&
+                    listingDocFieldsTypeValid(request.resource.data) &&
+                    imagePathIsValid(request.resource.data);
+                allow delete: if isAuth() &&
+                    isSameUserBasedOn(get(resource.data.seller).data.uid);
+                allow update: if isAuth() &&
+                    isSameUserBasedOn(get(resource.data.seller).data.uid) &&
+                    listingDocFieldsTypeValid(request.resource.data);
+            }
+
+            match /reviews/{reviewId} {
+                function reviewDocFieldsTypeValid(data) {
+                    let star = data.get("star", "");
+
+                    return data.get("author", path("/j89wefefw89")) is path &&
+                        star is int &&
+                        star >= 0 &&
+                        star <= 5 &&
+                        data.get("title", "") is string &&
+                        data.get("description", "") is string &&
+                        data.get("created", timestamp.value(1)) is timestamp
+                }
+
+                allow read: if true;
+                allow create: if isAuth() &&
+                    requestDataHasAllFields(["author", "star", "title", "description", "created"]) &&
+                    userExists(request.resource.data.author) &&
+                    reviewDocFieldsTypeValid(request.resource.data);
+                allow delete: if isAuth() &&
+                    isSameUserBasedOn(get(resource.data.author).data.uid);
+                allow update: if isAuth() &&
+                    isSameUserBasedOn(get(resource.data.author).data.uid) &&
+                    reviewDocFieldsTypeValid(request.resource.data);
+            }
+        }
+
+        // This match is for when we access listings as CollectionGroup query
+        match /{path=**}/listings/{listingId} {
+            allow read: if true;
+        }
+
+        match /{path=**}/reviews/{reviewsId} {
+            allow read: if true;
+        }
+    }
+}
