@@ -14,6 +14,13 @@ const theme = extendTheme({
     },
     colors,
     fonts,
+    styles: {
+        global: {
+            body: {
+                fontSize: "62.5%",
+            },
+        },
+    },
 });
 
 export default theme;
