@@ -8,8 +8,9 @@ const Input: ComponentStyleConfig = {
     baseStyle: ({ colorMode }) => ({
         field: {
             bg: colorMode === "light" ? "transparent" : "black",
-            border: colorMode === "light" && "1px solid black",
-            color: "accent",
+            border: "1px solid",
+            borderColor: colorMode === "light" ? "black" : "white",
+            color: colorMode === "light" ? "black" : "accent",
         },
     }),
     defaultProps: {
