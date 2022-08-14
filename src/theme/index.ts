@@ -3,6 +3,7 @@ import colors from "./colors";
 import Button from "./components/Button";
 import Input from "./components/Input";
 import fonts from "./fonts";
+import textStyles from "./text-styles";
 
 const theme = extendTheme({
     config: {
@@ -21,6 +22,7 @@ const theme = extendTheme({
             },
         },
     },
+    textStyles,
 });
 
 export default theme;
