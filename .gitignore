@@ -41,3 +41,6 @@ yarn-error.log*
 .firebaserc
 # *.rules
 # firestore.indexes.*
+
+# Dev
+**/pages/dev.*
