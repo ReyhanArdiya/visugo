@@ -1,5 +1,5 @@
 import { UserCredential } from "firebase/auth";
-import { FirestoreDataConverter } from "firebase/firestore";
+import { doc, FirestoreDataConverter, setDoc } from "firebase/firestore";
 import createPathSegments from "../../utils/firebase/client/firestore/create-path-segments";
 import { FirestoreCollection } from "../base/firestore-collection";
 
@@ -41,5 +41,16 @@ export class UserCollection<T = UserDoc> extends FirestoreCollection<T> {
         const pathSegments = createPathSegments(["users"], superParams[2]);
 
         super(superParams[0], superParams[1], pathSegments);
+    }
+
+    /**
+     * Prefer using this over {@link UserCollection.add}.
+     */
+    public async signUp(userId: string, data: T) {
+        const userRef = doc(this.ref, userId);
+
+        await setDoc(userRef, data);
+
+        return userRef;
     }
 }

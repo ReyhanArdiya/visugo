@@ -34,11 +34,14 @@ service cloud.firestore {
             allow create: if isAuth() &&
                 requestDataHasAllFields(["uid"]) &&
                 isSameUserBasedOn(request.resource.data.uid) &&
+                isSameUserBasedOn(request.resource.id) &&
                 userDocFieldsTypeValid(request.resource.data);
             allow delete: if isAuth() &&
-                isSameUserBasedOn(resource.data.uid);
+                isSameUserBasedOn(resource.data.uid) &&
+                isSameUserBasedOn(resource.id);
             allow update: if isAuth() &&
                 isSameUserBasedOn(resource.data.uid) &&
+                isSameUserBasedOn(request.resource.id) &&
                 userDocFieldsTypeValid(request.resource.data);
 
             // This match is for when we access a SINGLE listings collection
@@ -70,9 +73,11 @@ service cloud.firestore {
                     listingDocFieldsTypeValid(request.resource.data) &&
                     imagePathIsValid(request.resource.data);
                 allow delete: if isAuth() &&
-                    isSameUserBasedOn(get(resource.data.seller).data.uid);
+                    isSameUserBasedOn(get(resource.data.seller).data.uid) &&
+                    isSameUserBasedOn(get(resource.data.seller).id);
                 allow update: if isAuth() &&
                     isSameUserBasedOn(get(resource.data.seller).data.uid) &&
+                    isSameUserBasedOn(get(resource.data.seller).id) &&
                     listingDocFieldsTypeValid(request.resource.data);
             }
 
@@ -95,9 +100,11 @@ service cloud.firestore {
                     userExists(request.resource.data.author) &&
                     reviewDocFieldsTypeValid(request.resource.data);
                 allow delete: if isAuth() &&
-                    isSameUserBasedOn(get(resource.data.author).data.uid);
+                    isSameUserBasedOn(get(resource.data.author).data.uid) &&
+                    isSameUserBasedOn(get(resource.data.author).id);
                 allow update: if isAuth() &&
                     isSameUserBasedOn(get(resource.data.author).data.uid) &&
+                    isSameUserBasedOn(get(resource.data.author).id) &&
                     reviewDocFieldsTypeValid(request.resource.data);
             }
         }
