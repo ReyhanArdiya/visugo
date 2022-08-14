@@ -117,7 +117,9 @@ describe("UserDoc firestore rules", () => {
 
         it("cannot create a UserDoc", async () => {
             await assertFails(
-                unauthUserUserCollection.add({ uid: "useless" } as UserDoc)
+                unauthUserUserCollection.signUp("useless", {
+                    uid: "useless",
+                } as UserDoc)
             );
         });
 

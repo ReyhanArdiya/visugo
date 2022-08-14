@@ -7,5 +7,5 @@ export const addUser = async (
 ) => {
     const collection = new UserCollection(userDocConverter, authUser.db);
 
-    return await collection.add(userDoc as UserDoc);
+    return await collection.signUp(authUser.id, userDoc as UserDoc);
 };
