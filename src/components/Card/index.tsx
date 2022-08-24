@@ -9,6 +9,7 @@ import {
     Text,
     useColorModeValue,
 } from "@chakra-ui/react";
+import { motion, MotionConfig } from "framer-motion";
 import { MouseEventHandler } from "react";
 
 export interface CardProps {
@@ -32,101 +33,116 @@ const Card = ({
     const color = useColorModeValue("black", "accent");
 
     return (
-        <Grid
-            onClick={onCardClick}
-            as="article"
-            tabIndex={0}
-            _focusVisible={{
-                outline: "2px solid",
-                outlineColor: "accent",
+        <MotionConfig
+            transition={{
+                type: "spring",
+                damping: 15,
+                stiffness: 280,
             }}
-            bg={bg}
-            shadow="lg"
-            _dark={{
-                shadow: "none",
-            }}
-            _hover={{
-                outline: "1px solid",
-                outlineColor: "accent",
-            }}
-            outline="0px solid"
-            outlineColor="accent"
-            transition="outline 100ms ease-in-out"
-            boxSize="full"
-            rounded="md"
-            templateColumns="repeat(12, 1fr)"
-            templateRows="minmax(0, 2fr) 1fr 0.65fr"
-            cursor="pointer"
-            w="20em"
-            h="25em"
         >
-            <GridItem
-                colSpan={12}
-                roundedTop="inherit"
+            <Grid
+                userSelect="none"
+                onClick={onCardClick}
+                as={motion.article}
+                whileHover={{
+                    scale: 1.1,
+                }}
+                whileTap={{
+                    scale: 0.9,
+                }}
+                tabIndex={0}
+                _focusVisible={{
+                    outline: "2px solid",
+                    outlineColor: "accent",
+                }}
+                bg={bg}
+                shadow="lg"
+                _dark={{
+                    shadow: "none",
+                }}
+                _hover={{
+                    outline: "1px solid",
+                    outlineColor: "accent",
+                }}
+                outline="0px solid"
+                outlineColor="accent"
+                transition="outline 100ms ease-in-out"
+                boxSize="full"
+                rounded="md"
+                templateColumns="repeat(12, 1fr)"
+                templateRows="minmax(0, 2fr) 1fr 0.65fr"
+                cursor="pointer"
+                w="20em"
+                h="25em"
             >
-                <Image
-                    boxSize="full"
-                    objectFit="cover"
-                    objectPosition="center"
+                <GridItem
+                    colSpan={12}
                     roundedTop="inherit"
-                    src={src}
-                />
-            </GridItem>
-
-            <GridItem
-                colStart={2}
-                colSpan={10}
-                alignSelf="center"
-            >
-                <Heading
-                    as="h2"
-                    fontFamily="heading"
-                    size="md"
-                    fontWeight="bold"
-                    noOfLines={2}
-                    color={color}
                 >
-                    {title}
-                </Heading>
-            </GridItem>
-
-            <GridItem
-                colStart={2}
-                colSpan={7}
-                alignSelf="center"
-            >
-                <HStack>
-                    <Circle
-                        size="6"
-                        bgImage={sellerPic}
-                        bgPosition="center"
-                        bgSize="cover"
-                        bgRepeat="no-repeat"
+                    <Image
+                        boxSize="full"
+                        objectFit="cover"
+                        objectPosition="center"
+                        roundedTop="inherit"
+                        src={src}
                     />
-                    <Text
-                        fontSize="sm"
-                        fontWeight="normal"
+                </GridItem>
+
+                <GridItem
+                    colStart={2}
+                    colSpan={10}
+                    alignSelf="center"
+                >
+                    <Heading
+                        as="h2"
+                        fontFamily="heading"
+                        size="md"
+                        fontWeight="bold"
+                        noOfLines={2}
                         color={color}
                     >
-                        {sellerName}
-                    </Text>
-                </HStack>
-            </GridItem>
+                        {title}
+                    </Heading>
+                </GridItem>
 
-            <GridItem
-                colStart={10}
-                colSpan={2}
-                alignSelf="center"
-            >
-                <Badge
-                    variant="solid"
-                    colorScheme="yellow"
-                    fontSize="sm"
+                <GridItem
+                    colStart={2}
+                    colSpan={7}
+                    alignSelf="center"
                 >
-                    &#36;{price}
-                </Badge>
-            </GridItem>
-        </Grid>
+                    <HStack>
+                        <Circle
+                            size="6"
+                            bgImage={sellerPic}
+                            bgPosition="center"
+                            bgSize="cover"
+                            bgRepeat="no-repeat"
+                        />
+                        <Text
+                            fontSize="sm"
+                            fontWeight="normal"
+                            color={color}
+                        >
+                            {sellerName}
+                        </Text>
+                    </HStack>
+                </GridItem>
+
+                <GridItem
+                    colStart={10}
+                    colSpan={2}
+                    alignSelf="center"
+                >
+                    <Badge
+                        variant="solid"
+                        colorScheme="yellow"
+                        fontSize="sm"
+                    >
+                        &#36;{price}
+                    </Badge>
+                </GridItem>
+            </Grid>
+        </MotionConfig>
     );
 };
 
