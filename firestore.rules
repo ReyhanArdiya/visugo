@@ -86,7 +86,7 @@ service cloud.firestore {
 
                         return data.get("author", path("/j89wefefw89")) is path &&
                             star is int &&
-                            star >= 0 &&
+                            star > 0 &&
                             star <= 5 &&
                             data.get("title", "") is string &&
                             data.get("description", "") is string &&

@@ -12,7 +12,7 @@ export class ReviewDoc {
 
     constructor(
         public author: DocumentReference<UserDoc>,
-        public star: 0 | 1 | 2 | 3 | 4 | 5,
+        public star: 1 | 2 | 3 | 4 | 5,
         public title: string,
         public description: string,
         public created = Timestamp.now()
