@@ -12,7 +12,7 @@ import {
 import { motion, MotionConfig } from "framer-motion";
 import { MouseEventHandler } from "react";
 
-export interface CardProps {
+export interface ListingCardProps {
     src: string;
     title: string;
     price: number;
@@ -21,14 +21,14 @@ export interface CardProps {
     onCardClick: MouseEventHandler<HTMLDivElement>;
 }
 
-const Card = ({
+const ListingCard = ({
     src,
     title,
     price,
     sellerPic,
     sellerName,
     onCardClick,
-}: CardProps) => {
+}: ListingCardProps) => {
     const bg = useColorModeValue("white", "black");
     const color = useColorModeValue("black", "accent");
 
@@ -146,4 +146,4 @@ const Card = ({
     );
 };
 
-export default Card;
+export default ListingCard;

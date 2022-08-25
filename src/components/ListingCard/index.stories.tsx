@@ -1,10 +1,10 @@
 import type { Meta, StoryFn } from "@storybook/react";
-import CardComp, { CardProps } from ".";
+import ListingCardComp, { ListingCardProps } from ".";
 
-type Args = CardProps;
+type Args = ListingCardProps;
 
 const meta: Meta<Args> = {
-    component: CardComp,
+    component: ListingCardComp,
     args: {
         src: "https://picsum.photos/200",
         title: "Black Leather Bag",
@@ -19,6 +19,6 @@ const meta: Meta<Args> = {
     },
 };
 
-export const Card: StoryFn<Args> = args => <CardComp {...args} />;
+export const ListingCard: StoryFn<Args> = args => <ListingCardComp {...args} />;
 
 export default meta;
