@@ -1,6 +1,5 @@
 import {
     Badge,
-    Circle,
     Grid,
     GridItem,
     Heading,
@@ -11,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { motion, MotionConfig } from "framer-motion";
 import { MouseEventHandler } from "react";
+import ProfilePic from "../ProfilePic";
 
 export interface ListingCardProps {
     src: string;
@@ -111,13 +111,7 @@ const ListingCard = ({
                     alignSelf="center"
                 >
                     <HStack>
-                        <Circle
-                            size="6"
-                            bgImage={sellerPic}
-                            bgPosition="center"
-                            bgSize="cover"
-                            bgRepeat="no-repeat"
-                        />
+                        <ProfilePic src={sellerPic} />
                         <Text
                             fontSize="sm"
                             fontWeight="normal"
