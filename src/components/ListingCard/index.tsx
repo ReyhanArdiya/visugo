@@ -7,6 +7,7 @@ import {
     Image,
     Text,
     useColorModeValue,
+    useStyleConfig,
 } from "@chakra-ui/react";
 import { motion, MotionConfig } from "framer-motion";
 import { MouseEventHandler } from "react";
@@ -32,6 +33,8 @@ const ListingCard = ({
     const bg = useColorModeValue("white", "black");
     const color = useColorModeValue("black", "accent");
 
+    const cardStyle = useStyleConfig("Card");
+
     return (
         <MotionConfig
             transition={{
@@ -41,6 +44,7 @@ const ListingCard = ({
             }}
         >
             <Grid
+                sx={cardStyle}
                 userSelect="none"
                 onClick={onCardClick}
                 as={motion.article}
@@ -56,7 +60,6 @@ const ListingCard = ({
                     outlineColor: "accent",
                 }}
                 bg={bg}
-                shadow="lg"
                 _dark={{
                     shadow: "none",
                 }}
@@ -68,7 +71,6 @@ const ListingCard = ({
                 outlineColor="accent"
                 transition="outline 100ms ease-in-out"
                 boxSize="full"
-                rounded="md"
                 templateColumns="repeat(12, 1fr)"
                 templateRows="minmax(0, 2fr) 1fr 0.65fr"
                 cursor="pointer"
