@@ -14,7 +14,7 @@ import {
 import { motion, MotionConfig, Variants } from "framer-motion";
 import { ReviewDoc } from "../../models/user/listing/review";
 import ProfilePic from "../ProfilePic";
-import ReviewCardStars from "./ReviewCardStars";
+import ReviewStars from "./ReviewStars";
 
 export interface ReviewCardProps {
     authorImage: string;
@@ -106,7 +106,7 @@ const ReviewCard = ({
                                     w="full"
                                     justify="space-between"
                                 >
-                                    <ReviewCardStars
+                                    <ReviewStars
                                         count={star}
                                         as={motion.div}
                                         // @ts-expect-error: this will exist cuz as motion
