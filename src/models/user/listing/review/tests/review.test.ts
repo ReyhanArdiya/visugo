@@ -1,7 +1,12 @@
-import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
+import {
+    assertFails,
+    assertSucceeds,
+    RulesTestEnvironment,
+} from "@firebase/rules-unit-testing";
 import { doc, DocumentReference } from "firebase/firestore";
 import { ReviewCollection, ReviewDoc, reviewDocConverter } from "..";
 import {
+    cleanMockFirebase,
     MockAuthUser,
     MockUnauthUser,
     setMockUserDoc,
@@ -20,9 +25,12 @@ let addMockReview: (
     reviewDoc?: Parameters<typeof addReview>[2]
 ) => ReturnType<typeof addReview>;
 
+let rulesTestEnv: RulesTestEnvironment;
+
 beforeEach(async () => {
     const mockFirebase = await setupMockFirebase("1");
 
+    rulesTestEnv = mockFirebase.testEnv;
     authUser = mockFirebase.authUser;
     unauthUser = mockFirebase.unauthUser;
     author = await setMockUserDoc(authUser);
@@ -30,7 +38,7 @@ beforeEach(async () => {
     correctReviewDoc = new ReviewDoc(author.ref, 5, "Good!", "Good desc");
 });
 
-// afterEach(async () => await cleanMockFirebase(rulesTestEnv));
+afterEach(async () => await cleanMockFirebase(rulesTestEnv));
 
 describe("ReviewDoc firestore schema validation", () => {
     it("allows when data has author, star, title and description", async () => {
