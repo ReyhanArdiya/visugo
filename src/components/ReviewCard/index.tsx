@@ -4,6 +4,8 @@ import {
     AccordionIcon,
     AccordionItem,
     Box,
+    Button,
+    ButtonGroup,
     Heading,
     HStack,
     Text,
@@ -12,9 +14,18 @@ import {
     VStack,
 } from "@chakra-ui/react";
 import { motion, MotionConfig, Variants } from "framer-motion";
+import { useCallback, useRef, useState } from "react";
 import { ReviewDoc } from "../../models/user/listing/review";
 import ProfilePic from "../ProfilePic";
-import ReviewStars from "./ReviewStars";
+import ReviewStars, { OnStarClick, ReviewStarsProps } from "./ReviewStars";
+
+export interface ReviewCardEditableProps
+    extends Pick<ReviewStarsProps, "onStarClick"> {
+    onFinish?: (
+        data: Omit<ReviewCardProps, "created" | "authorImage" | "edit">
+    ) => void;
+    onCancel?: () => void;
+}
 
 export interface ReviewCardProps {
     authorImage: string;
@@ -23,6 +34,7 @@ export interface ReviewCardProps {
     description: ReviewDoc["description"];
     star: ReviewDoc["star"];
     title: ReviewDoc["title"];
+    edit?: ReviewCardEditableProps;
 }
 
 const fadeIn: Variants = {
@@ -43,10 +55,39 @@ const ReviewCard = ({
     description,
     star,
     title,
+    edit,
 }: ReviewCardProps) => {
     const [hidden, { toggle: toggleHidden }] = useBoolean(true);
+    const [stars, setStars] = useState(star);
+
+    const authorNameRef = useRef<HTMLHeadingElement>(null);
+    const descriptionRef = useRef<HTMLParagraphElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
 
     const cardStyles = useStyleConfig("Card");
+
+    const onEditFinishHandler = useCallback(() => {
+        if (edit?.onFinish) {
+            edit.onFinish({
+                authorName: authorNameRef.current?.innerText as string,
+                description: descriptionRef.current?.innerText as string,
+                title: titleRef.current?.innerText as string,
+                star: stars,
+            });
+        }
+    }, [edit, stars]);
+
+    const onStarClickHandler = useCallback<OnStarClick>(
+        index => {
+            if (edit?.onStarClick) {
+                setStars(index);
+                edit.onStarClick(index);
+            }
+        },
+        [edit]
+    );
+
+    const isHidden = hidden && !edit;
 
     return (
         <Accordion allowToggle>
@@ -57,12 +98,13 @@ const ReviewCard = ({
                     }}
                 >
                     <VStack
+                        className="review-card"
                         variants={fadeIn}
                         as={motion.article}
                         initial="hidden"
                         animate="visible"
                         // animate={{
-                        //     height: hidden ? "256px" : "max-content",
+                        //     height: isHidden ? "256px" : "max-content",
                         //     transition: {
                         //         type: "tween",
                         //     },
@@ -71,8 +113,6 @@ const ReviewCard = ({
                         sx={cardStyles}
                         p="5"
                         spacing={4}
-                        minW={80}
-                        maxW={96}
                     >
                         <HStack
                             w="full"
@@ -95,9 +135,12 @@ const ReviewCard = ({
                                     fontFamily="body"
                                     fontWeight="thin"
                                     fontSize="lg"
-                                    noOfLines={hidden ? 1 : undefined}
-                                    as={motion.div}
+                                    noOfLines={isHidden ? 1 : undefined}
+                                    as={motion.h4}
                                     variants={fadeIn}
+                                    ref={authorNameRef}
+                                    contentEditable={!!edit}
+                                    cursor={edit ? "text" : "default"}
                                 >
                                     {authorName}
                                 </Heading>
@@ -107,10 +150,13 @@ const ReviewCard = ({
                                     justify="space-between"
                                 >
                                     <ReviewStars
-                                        count={star}
+                                        count={stars}
                                         as={motion.div}
                                         // @ts-expect-error: this will exist cuz as motion
                                         variants={fadeIn}
+                                        onStarClick={
+                                            edit?.onStarClick && onStarClickHandler
+                                        }
                                     />
                                     <Text
                                         fontSize="sm"
@@ -127,22 +173,31 @@ const ReviewCard = ({
                         <VStack
                             align="start"
                             spacing="0"
+                            w="full"
                         >
                             <Heading
                                 fontSize="2xl"
                                 fontWeight="black"
                                 fontFamily="title"
-                                noOfLines={hidden ? 1 : undefined}
-                                as={motion.h4}
+                                noOfLines={isHidden ? 1 : undefined}
+                                as={motion.h3}
                                 variants={fadeIn}
+                                ref={titleRef}
+                                contentEditable={!!edit}
+                                cursor={edit ? "text" : "default"}
+                                w="full"
                             >
                                 {title}
                             </Heading>
                             <Text
                                 fontSize="md"
-                                noOfLines={hidden ? 3 : undefined}
+                                noOfLines={isHidden ? 3 : undefined}
                                 as={motion.p}
                                 variants={fadeIn}
+                                ref={descriptionRef}
+                                contentEditable={!!edit}
+                                cursor={edit ? "text" : "default"}
+                                w="full"
                             >
                                 {description}
                             </Text>
@@ -154,12 +209,27 @@ const ReviewCard = ({
                             as={motion.div}
                             variants={fadeIn}
                         >
-                            <AccordionButton
-                                onClick={toggleHidden}
-                                rounded="inherit"
-                            >
-                                <AccordionIcon />
-                            </AccordionButton>
+                            {edit ? (
+                                <ButtonGroup
+                                    data-testid="edit-actions"
+                                    w="full"
+                                    justifyContent="center"
+                                    spacing={10}
+                                >
+                                    <Button onClick={onEditFinishHandler}>
+                                        Finish
+                                    </Button>
+                                    <Button onClick={edit.onCancel}>Cancel</Button>
+                                </ButtonGroup>
+                            ) : (
+                                <AccordionButton
+                                    data-testid="toggle-button"
+                                    onClick={toggleHidden}
+                                    rounded="inherit"
+                                >
+                                    <AccordionIcon />
+                                </AccordionButton>
+                            )}
                         </Box>
                     </VStack>
                 </MotionConfig>

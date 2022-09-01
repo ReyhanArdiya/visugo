@@ -25,8 +25,9 @@ beforeEach(async () => {
 afterEach(async () => await cleanMockFirebase(rulesTestEnv));
 
 // Component rendering
+let reviewCardEl: HTMLElement;
 beforeEach(() => {
-    render(
+    reviewCardEl = render(
         <ReviewCard
             authorImage={"https://picsum.photos/500"}
             authorName={"Elys Maldov"}
@@ -39,19 +40,28 @@ beforeEach(() => {
                 "Hello world and all who inhabit it it is so nice to meet you guys"
             }
         />
-    );
+    ).baseElement;
 });
 
 afterEach(() => cleanup());
 
-describe.skip("ReviewCard", () => {
+describe.skip("ReviewCard rendering", () => {
     it("is rendered", () => {
-        expect(document.querySelector(".review")).toBeDefined();
+        expect(reviewCardEl).toBeDefined();
     });
 
-    it.todo("shows the edit button when the user is reviewer");
-    it.todo("hides the delete button when the user is not the reviewer");
+    it("is collapsed when not editing", () => {
+        expect(screen.queryByTestId("toggle-button")).toBeDefined();
+    });
+    it("can expand by a button when it is collapsed", () => {});
 
-    it.todo("shows the edit button when the user is reviewer");
-    it.todo("hides the delete button when the user is not the reviewer");
+    it("is expanded when editing", () => {});
+    it("shows finish and cancel button when editing", () => {});
+});
+
+describe("ReviewCard editing mode", () => {
+    test("the authorName is editable ", () => {});
+    test("the title is editable ", () => {});
+    test("the star is editable ", () => {});
+    test("the description is editable ", () => {});
 });
