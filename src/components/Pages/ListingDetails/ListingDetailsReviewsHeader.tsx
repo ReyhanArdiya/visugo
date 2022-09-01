@@ -1,8 +1,8 @@
 import { Button, Divider, HStack, Text, VStack } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import { ReviewDoc } from "../../models/user/listing/review";
-import { fadeFromLeft } from "../../styles/framer-variants";
-import ReviewStars from "../ReviewCard/ReviewStars";
+import { ReviewDoc } from "../../../models/user/listing/review";
+import { fadeFromLeft } from "../../../styles/framer-variants";
+import ReviewStars from "../../ReviewCard/ReviewStars";
 
 export interface ListingDetailsReviewsHeaderProps {
     stars: ReviewDoc["star"];

@@ -7,10 +7,10 @@ import {
     ListItem,
     Text,
 } from "@chakra-ui/react";
-import Image from "../Image";
-import MaterialGrid from "../MaterialGrid";
-import ReviewCard, { ReviewCardProps } from "../ReviewCard";
-import ReviewStars from "../ReviewCard/ReviewStars";
+import Image from "../../Image";
+import MaterialGrid from "../../MaterialGrid";
+import ReviewCard, { ReviewCardProps } from "../../ReviewCard";
+import ReviewStars from "../../ReviewCard/ReviewStars";
 import ListingDetailsHeader, {
     ListingDetailsHeaderProps,
 } from "./ListingDetailsHeader";

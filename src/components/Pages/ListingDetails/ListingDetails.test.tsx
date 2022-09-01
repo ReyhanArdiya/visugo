@@ -5,7 +5,7 @@ import {
     MockAuthUser,
     MockUnauthUser,
     setupMockFirebase,
-} from "../../tests/utils/firestore-tests-utils";
+} from "../../../tests/utils/firestore-tests-utils";
 
 let rulesTestEnv: RulesTestEnvironment;
 let authUser: MockAuthUser;

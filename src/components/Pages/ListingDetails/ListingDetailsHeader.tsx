@@ -1,7 +1,7 @@
 import { Divider, HStack, Text, VStack } from "@chakra-ui/react";
 import { motion, MotionConfig } from "framer-motion";
-import { fadeFromLeft, fadeFromRight } from "../../styles/framer-variants";
-import ProfilePic from "../ProfilePic";
+import { fadeFromLeft, fadeFromRight } from "../../../styles/framer-variants";
+import ProfilePic from "../../ProfilePic";
 
 export interface ListingDetailsHeaderProps {
     sellerImage: string;
