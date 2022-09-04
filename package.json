@@ -7,15 +7,15 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "gen:theme-typings": "chakra-cli tokens ./src/theme --out node_modules/@chakra-ui/system/node_modules/@chakra-ui/styled-system/dist/declarations/src/theming.types.d.ts",
-        "postinstall": "npm run gen:theme-typings",
-        "storybook": ". ~/.nvm/nvm.sh; nvm use; start-storybook -p 6006",
+        "gen:theme-typings": "npx chakra-cli tokens ./src/theme --out node_modules/@chakra-ui/system/node_modules/@chakra-ui/styled-system/dist/declarations/src/theming.types.d.ts",
+        "storybook": ". ~/.config/nvm/nvm.sh; nvm use; start-storybook -p 6006",
         "build-storybook": "build-storybook",
         "test": "vitest",
         "test:ui": "vitest --ui",
         "prepare": "husky install"
     },
     "dependencies": {
+        "@chakra-ui/icons": "^2.0.9",
         "@chakra-ui/react": "^2.2.4",
         "@emotion/react": "^11.9.3",
         "@emotion/styled": "^11.9.3",
@@ -30,6 +30,7 @@
         "nookies": "^2.5.2",
         "react": "18.2.0",
         "react-dom": "18.2.0",
+        "react-icons": "^4.4.0",
         "reflect-metadata": "^0.1.13"
     },
     "devDependencies": {

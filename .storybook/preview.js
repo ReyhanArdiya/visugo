@@ -11,4 +11,5 @@ export const parameters = {
     chakra: {
         theme,
     },
+    layout: "centered",
 };
