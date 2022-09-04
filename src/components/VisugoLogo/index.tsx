@@ -1,18 +1,19 @@
-import { Image, Text, VStack } from "@chakra-ui/react";
+import { Image, ImageProps, Text, VStack } from "@chakra-ui/react";
 
-export interface VisugoLogoProps {
+export interface VisugoLogoProps extends ImageProps {
     noText?: boolean;
 }
 
-const VisugoLogo = ({ noText }: VisugoLogoProps) => (
+const VisugoLogo = ({ noText, ...props }: VisugoLogoProps) => (
     <VStack
         spacing="0"
-        w="28.8em"
+        w={props.w || props.boxSize || "28.8em"}
         justify="center"
     >
         <Image
             src="images/visugo-logo.png"
             maxW="14.4em"
+            {...props}
         />
         {!noText && (
             <Text
