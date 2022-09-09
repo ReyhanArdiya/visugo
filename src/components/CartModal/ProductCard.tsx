@@ -7,6 +7,7 @@ import {
     Heading,
     Icon,
     Text,
+    useTheme,
     VStack,
 } from "@chakra-ui/react";
 import { MouseEventHandler } from "react";
@@ -35,99 +36,106 @@ const ProductCard = ({
     quantity,
     seller,
     title,
-}: ProductCardProps) => (
-    <Grid
-        columnGap="2"
-        rowGap="10"
-        bg="blackAlpha.100"
-        rounded="xl"
-        gridTemplateAreas={`"image info"
-                                "action action"`}
-        gridAutoColumns="1fr"
-        padding="4"
-    >
-        <GridItem
-            gridArea="image"
-            rounded="inherit"
-        >
-            <Box rounded="inherit">
-                <Image
-                    rounded="inherit"
-                    layout="fill"
-                    src={image}
-                    cursor={onImageClick ? "pointer" : "default"}
-                    onClick={onImageClick}
-                />
-            </Box>
-        </GridItem>
+}: ProductCardProps) => {
+    const {
+        colors: { accent },
+    } = useTheme();
 
-        <GridItem gridArea="info">
-            <VStack
-                spacing={2}
-                align="end"
+    return (
+        <Grid
+            columnGap="2"
+            rowGap="10"
+            bg="blackAlpha.100"
+            rounded="xl"
+            gridTemplateAreas={`"image info"
+                                        "action action"`}
+            gridAutoColumns="1fr"
+            padding="4"
+        >
+            <GridItem
+                gridArea="image"
+                rounded="inherit"
             >
+                <Box rounded="inherit">
+                    <Image
+                        rounded="inherit"
+                        layout="fill"
+                        src={image}
+                        cursor={onImageClick ? "pointer" : "default"}
+                        onClick={onImageClick}
+                    />
+                </Box>
+            </GridItem>
+
+            <GridItem gridArea="info">
                 <VStack
-                    spacing={0}
+                    spacing={2}
                     align="end"
                 >
-                    <Heading
-                        fontSize={{
-                            base: "2xl",
-                            md: "3xl",
-                        }}
-                        textAlign="right"
+                    <VStack
+                        spacing={0}
+                        align="end"
                     >
-                        {title}
-                    </Heading>
+                        <Heading
+                            fontSize={{
+                                base: "2xl",
+                                md: "3xl",
+                            }}
+                            textAlign="right"
+                        >
+                            {title}
+                        </Heading>
 
-                    <Text
-                        textAlign="right"
+                        <Text
+                            textAlign="right"
+                            fontSize={{
+                                base: "lg",
+                                md: "xl",
+                            }}
+                        >
+                            by{" "}
+                            <Text
+                                color="gray.500"
+                                as="i"
+                            >
+                                {seller}
+                            </Text>
+                        </Text>
+                    </VStack>
+
+                    <VStack
+                        w="full"
                         fontSize={{
                             base: "lg",
                             md: "xl",
                         }}
+                        align="flex-end"
                     >
-                        by{" "}
                         <Text
-                            color="gray.500"
-                            as="i"
+                            color="black"
+                            fontWeight="black"
+                            bgGradient={`linear-gradient(180deg,rgba(255,255,255,0) 50%, ${accent} 50%)`}
                         >
-                            {seller}
+                            ${price} x {quantity}
                         </Text>
-                    </Text>
+                    </VStack>
                 </VStack>
+            </GridItem>
 
-                <VStack
-                    w="full"
-                    fontSize={{
-                        base: "lg",
-                        md: "xl",
-                    }}
-                    align="flex-end"
-                >
-                    <Text
-                        color="accent"
-                        fontWeight="black"
-                    >
-                        ${price} x {quantity}
-                    </Text>
-                </VStack>
-            </VStack>
-        </GridItem>
-
-        <ButtonGroup
-            as={GridItem}
-            gridArea="action"
-            w="full"
-            justifyContent="flex-end"
-        >
-            <Button onClick={onDelete}>
-                <Icon as={BsTrashFill} />
-            </Button>
-            <Button onClick={onRemove}>-</Button>
-            <Button onClick={onAdd}>+</Button>
-        </ButtonGroup>
-    </Grid>
-);
+            <ButtonGroup
+                as={GridItem}
+                gridArea="action"
+                w="full"
+                justifyContent="flex-end"
+            >
+                <Button onClick={onDelete}>
+                    <Icon as={BsTrashFill} />
+                </Button>
+                <Button onClick={onRemove}>-</Button>
+                <Button onClick={onAdd}>+</Button>
+            </ButtonGroup>
+        </Grid>
+    );
+};
 
 export default ProductCard;
