@@ -1,15 +1,22 @@
+import { action } from "@storybook/addon-actions";
 import type { Meta, StoryFn } from "@storybook/react";
-import NavbarComp, { NavbarProps } from ".";
+import NavbarComp, { LoggedInNavbar, LoggedOutNavbar, NavbarProps } from ".";
 
-interface Args extends NavbarProps {
-    nmeo: 1;
-}
+type Args = NavbarProps &
+    Omit<LoggedInNavbar, "isLoggedIn"> &
+    Omit<LoggedOutNavbar, "isLoggedIn"> & { isLoggedIn: boolean };
 
 const meta: Meta<Args> = {
     component: NavbarComp,
     args: {
+        cartCounter: 10,
+        isLoggedIn: true,
+        onCartIconClick: action("Cart Clicked!"),
+        onLogIn: action("Log In!"),
+        onLogoClick: action("Logo Clicked!"),
+        onProfileClick: action("Profile Clicked!"),
+        onSignUp: action("Sign Up!"),
         profileImg: "https://picsum.photos/200",
-        cartCounter: 0,
     },
     parameters: {
         layout: "fullscreen",
