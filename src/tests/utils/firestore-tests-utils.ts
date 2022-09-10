@@ -73,7 +73,8 @@ export const setMockUserDoc = async (
         `users/${authUser.id}`
     ) as DocumentReference<MockUserDoc>;
 
-    await setDoc(userRef, { uid: authUser.id });
+    // @ts-expect-error: tireddd
+    await setDoc(userRef, { uid: authUser.id, cart: {} });
 
     return (await getDoc(userRef)) as DocumentSnapshot<UserDoc>;
 };
