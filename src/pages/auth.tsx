@@ -37,23 +37,32 @@ import { CookieKeys, firebaseTokenCookie } from "../utils/cookies";
 import getFirebaseAdmin from "../utils/firebase/admin/get-firebase-admin";
 import getFirestoreClient from "../utils/firebase/client/firestore/get-firestore-client";
 import getFirebaseClient from "../utils/firebase/client/get-firebase-client";
+import nookies from "nookies";
 
-export const getServerSideProps: GetServerSideProps = async ({ req }) => {
-    const firebaseToken = req.cookies[CookieKeys.FIREBASE_TOKEN];
+export const getServerSideProps: GetServerSideProps = async ctx => {
+    const firebaseToken = ctx.req.cookies[CookieKeys.FIREBASE_TOKEN];
     const app = getFirebaseAdmin();
     const auth = getAdminAuth(app);
 
-    const isLoggedIn = firebaseToken
-        ? await auth.verifyIdToken(firebaseToken)
-        : false;
+    try {
+        const isLoggedIn = firebaseToken
+            ? await auth.verifyIdToken(firebaseToken)
+            : false;
 
-    return {
-        props: {},
-        redirect: isLoggedIn && {
-            destination: "/",
-            permanent: false,
-        },
-    };
+        return {
+            props: {},
+            redirect: isLoggedIn && {
+                destination: "/",
+                permanent: false,
+            },
+        };
+    } catch (err) {
+        nookies.destroy(ctx, CookieKeys.FIREBASE_TOKEN);
+
+        return {
+            props: {},
+        };
+    }
 };
 
 const Auth: NextPage = () => {
