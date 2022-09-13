@@ -38,10 +38,19 @@ export const getUserDocCartProducts = (
     });
 };
 
-export const getCartTotal = (cart: Cart) => {
+export const getCartTotal = (cart: Cart): { quantity: number; price: number } => {
     const cartItems = Object.values(cart);
 
-    return cartItems.reduce((total, cartItem) => total + cartItem.quantity, 0);
-};
+    let quantity = 0;
+    let price = 0;
 
-export default getCartTotal;
+    for (const cartItem of cartItems) {
+        quantity += cartItem.quantity;
+        price += Number((cartItem.price * cartItem.quantity).toFixed(2));
+    }
+
+    return {
+        quantity,
+        price,
+    };
+};

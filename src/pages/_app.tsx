@@ -10,7 +10,7 @@ import useCurrentUserDocListener from "../hooks/use-current-user-doc-listener";
 import { CartContextProvider } from "../store/cart";
 import theme from "../theme";
 import getFirebaseClient from "../utils/firebase/client/get-firebase-client";
-import getCartTotal, { getUserDocCartProducts } from "../utils/user-cart";
+import { getCartTotal, getUserDocCartProducts } from "../utils/user-cart";
 
 function MyApp({ Component, pageProps }: AppProps) {
     // Firebase data
@@ -25,12 +25,15 @@ function MyApp({ Component, pageProps }: AppProps) {
         () => userDoc?.cart && getUserDocCartProducts(userDoc, db),
         [db, userDoc]
     );
+    const cartTotal = userDoc?.cart
+        ? getCartTotal(userDoc.cart)
+        : { quantity: 0, price: 0 };
 
     // Navigation
     const router = useRouter();
     const navbarActions = isLoggedIn
         ? ({
-              cartCounter: userDoc?.cart ? getCartTotal(userDoc.cart) : 0,
+              cartCounter: cartTotal.quantity,
               onCartIconClick() {
                   onOpen();
               },
@@ -69,7 +72,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                         products={products as CartModalProps["products"]}
                         onClose={onClose}
                         onCheckout={() => alert("Fake checkout!")}
-                        totalPrice={123}
+                        totalPrice={cartTotal.price}
                     />
                 )}
                 <Component {...pageProps} />
