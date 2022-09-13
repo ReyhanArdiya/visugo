@@ -1,34 +1,22 @@
-// import { getFirestore } from "firebase-admin/firestore";
-// import { connectFirestoreEmulator } from "firebase/firestore";
-// import { connectAuthEmulator, getAuth } from "firebase/auth";
-// import { connectStorageEmulator, getStorage } from "firebase/storage";
-import { App } from "firebase-admin/app";
-
 /**
  * This function already checks node_env internally.
  */
-const setupLocalEmulator = (app: App) => {
-    app;
+const setupLocalEmulator = () => {
     if (
         process.env.NODE_ENV !== "production" &&
         process.env.NEXT_PUBLIC_EMULATOR_FIRESTORE_PORT &&
         process.env.NEXT_PUBLIC_EMULATOR_AUTH_PORT &&
         process.env.NEXT_PUBLIC_EMULATOR_STORAGE_PORT
     ) {
-        // connectFirestoreEmulator(
-        // 	getFirestore(app),
-        // 	"localhost",
-        // 	+process.env.NEXT_PUBLIC_EMULATOR_FIRESTORE_PORT
-        // );
-        // connectAuthEmulator(
-        // 	getAuth(app),
-        // 	`http://localhost:${process.env.NEXT_PUBLIC_EMULATOR_AUTH_PORT}`
-        // );
-        // connectStorageEmulator(
-        // 	getStorage(app),
-        // 	"localhost",
-        // 	+process.env.NEXT_PUBLIC_EMULATOR_STORAGE_PORT
-        // );
+        process.env[
+            "FIRESTORE_EMULATOR_HOST"
+        ] = `localhost:${process.env.NEXT_PUBLIC_EMULATOR_FIRESTORE_PORT}`;
+        process.env[
+            "FIREBASE_AUTH_EMULATOR_HOST"
+        ] = `localhost:${process.env.NEXT_PUBLIC_EMULATOR_AUTH_PORT}`;
+        process.env[
+            "FIREBASE_STORAGE_EMULATOR_HOST"
+        ] = `localhost:${process.env.NEXT_PUBLIC_EMULATOR_STORAGE_PORT}`;
     }
 };
 

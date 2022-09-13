@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: false,
     swcMinify: true,
+    images: {
+        domains: ["picsum.photos", "i.picsum.photos", "https://picsum.photos"],
+    },
 };
 
 module.exports = nextConfig;

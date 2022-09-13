@@ -4,6 +4,7 @@ import {
     RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { FirebaseError } from "firebase/app";
+import { getDoc } from "firebase/firestore";
 
 import {
     cleanMockFirebase,
@@ -11,8 +12,14 @@ import {
     MockUnauthUser,
     setupMockFirebase,
 } from "../../../tests/utils/firestore-tests-utils";
-import { UserCollection, UserDoc, userDocConverter } from "../user";
-import { addUser } from "./utils";
+import { addListing } from "../listing/tests/utils";
+import {
+    CartUpdatedCartItem,
+    UserCollection,
+    UserDoc,
+    userDocConverter,
+} from "../user";
+import { addItemToCart, addUser, createMockCartItem } from "./utils";
 
 let rulesTestEnv: RulesTestEnvironment;
 let authUser: MockAuthUser;
@@ -117,7 +124,9 @@ describe("UserDoc firestore rules", () => {
 
         it("cannot create a UserDoc", async () => {
             await assertFails(
-                unauthUserUserCollection.add({ uid: "useless" } as UserDoc)
+                unauthUserUserCollection.signUp("useless", {
+                    uid: "useless",
+                } as UserDoc)
             );
         });
 
@@ -136,5 +145,143 @@ describe("UserDoc firestore rules", () => {
                 })
             );
         });
+    });
+});
+
+describe("UserDoc cart field", () => {
+    let authUserUserCollection: UserCollection;
+
+    let userDoc: UserDoc;
+    let listingRef: Awaited<ReturnType<typeof addListing>>;
+    let listingDoc: CartUpdatedCartItem;
+
+    beforeEach(async () => {
+        authUserUserCollection = new UserCollection(userDocConverter, authUser.db);
+
+        await addUser(authUser);
+        userDoc = new UserDoc(authUser.id);
+        listingRef = await addListing(authUser);
+        listingDoc = createMockCartItem(await getDoc(listingRef));
+    });
+
+    test("authenticated users can add new item to cart", async () => {
+        const expectedQuantity = 20;
+
+        const updatedUserDocData = await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            listingDoc,
+            expectedQuantity
+        );
+
+        expect(updatedUserDocData?.cart[listingDoc.id]).toHaveProperty(
+            "quantity",
+            expectedQuantity
+        );
+    });
+
+    test("authenticated users can increase item quantities on cart", async () => {
+        const { cart: oldCart } = await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            listingDoc
+        );
+
+        const oldQuant = oldCart[listingDoc.id].quantity;
+
+        const { cart: newCart } = await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            listingDoc,
+            1
+        );
+
+        expect(newCart[listingDoc.id].quantity).toBe(oldQuant + 1);
+    });
+    test("authenticated users can remove item quantity on cart", async () => {
+        const { cart: oldCart } = await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            listingDoc
+        );
+
+        const oldQuant = oldCart[listingDoc.id].quantity;
+
+        const { cart: newCart } = await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            listingDoc,
+            -1
+        );
+
+        expect(newCart[listingDoc.id].quantity).toBe(oldQuant - 1);
+    });
+    it("deletes an item from cart when the item quantity is 0", async () => {
+        await addItemToCart(authUser, authUserUserCollection, userDoc, listingDoc);
+
+        const { cart: newCart } = await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            listingDoc,
+            -20
+        );
+
+        expect(newCart).not.toHaveProperty(listingDoc.id);
+    });
+    it(
+        "deletes an item from cart when passing false for the incQuant argument",
+        async () => {
+            await addItemToCart(
+                authUser,
+                authUserUserCollection,
+                userDoc,
+                listingDoc
+            );
+
+            await userDoc.cartUpdated(authUser.db, listingDoc, false);
+
+            const { cart } = (
+                await authUserUserCollection.getDocById(userDoc.uid)
+            ).data() as UserDoc;
+
+            expect(cart).not.toHaveProperty(listingDoc.id);
+        },
+        Infinity
+    );
+
+    test("authenticated users can read all items from cart", async () => {
+        // CMT could've used and array and loop but whatevs
+        const listing1 = await addListing(authUser);
+        const listing2 = await addListing(authUser);
+        const listing3 = await addListing(authUser);
+
+        await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            createMockCartItem(await getDoc(listing1))
+        );
+        await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            createMockCartItem(await getDoc(listing2))
+        );
+        const { cart: latestCart } = await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            createMockCartItem(await getDoc(listing3))
+        );
+
+        expect(latestCart).toHaveProperty(listing1.id);
+        expect(latestCart).toHaveProperty(listing2.id);
+        expect(latestCart).toHaveProperty(listing3.id);
     });
 });

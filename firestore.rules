@@ -30,15 +30,30 @@ service cloud.firestore {
                 return data.get("uid", "") is string;
             }
 
+            function cartFieldTypeValid(data) {
+                let cart = data.cart;
+
+                return cart.get("quantity", 0) is int &&
+                    cart.get("image", "") is string &&
+                    cart.get("price", 0) is number &&
+                    cart.get("seller", "") is string &&
+                    cart.get("title", "") is string
+            }
+
             allow read: if isAuth();
             allow create: if isAuth() &&
-                requestDataHasAllFields(["uid"]) &&
+                requestDataHasAllFields(["uid", "cart"]) &&
+                cartFieldTypeValid(request.resource.data) &&
                 isSameUserBasedOn(request.resource.data.uid) &&
+                isSameUserBasedOn(request.resource.id) &&
                 userDocFieldsTypeValid(request.resource.data);
             allow delete: if isAuth() &&
-                isSameUserBasedOn(resource.data.uid);
-            allow update: if isAuth() &&
                 isSameUserBasedOn(resource.data.uid) &&
+                isSameUserBasedOn(resource.id);
+            allow update: if isAuth() &&
+                cartFieldTypeValid(request.resource.data) &&
+                isSameUserBasedOn(resource.data.uid) &&
+                isSameUserBasedOn(request.resource.id) &&
                 userDocFieldsTypeValid(request.resource.data);
 
             // This match is for when we access a SINGLE listings collection
@@ -70,35 +85,39 @@ service cloud.firestore {
                     listingDocFieldsTypeValid(request.resource.data) &&
                     imagePathIsValid(request.resource.data);
                 allow delete: if isAuth() &&
-                    isSameUserBasedOn(get(resource.data.seller).data.uid);
+                    isSameUserBasedOn(get(resource.data.seller).data.uid) &&
+                    isSameUserBasedOn(get(resource.data.seller).id);
                 allow update: if isAuth() &&
                     isSameUserBasedOn(get(resource.data.seller).data.uid) &&
+                    isSameUserBasedOn(get(resource.data.seller).id) &&
                     listingDocFieldsTypeValid(request.resource.data);
-            }
 
-            match /reviews/{reviewId} {
-                function reviewDocFieldsTypeValid(data) {
-                    let star = data.get("star", "");
+                match /reviews/{reviewId} {
+                    function reviewDocFieldsTypeValid(data) {
+                        let star = data.get("star", "");
 
-                    return data.get("author", path("/j89wefefw89")) is path &&
-                        star is int &&
-                        star >= 0 &&
-                        star <= 5 &&
-                        data.get("title", "") is string &&
-                        data.get("description", "") is string &&
-                        data.get("created", timestamp.value(1)) is timestamp
+                        return data.get("author", path("/j89wefefw89")) is path &&
+                            star is int &&
+                            star > 0 &&
+                            star <= 5 &&
+                            data.get("title", "") is string &&
+                            data.get("description", "") is string &&
+                            data.get("created", timestamp.value(1)) is timestamp
+                    }
+
+                    allow read: if true;
+                    allow create: if isAuth() &&
+                        requestDataHasAllFields(["author", "star", "title", "description", "created"]) &&
+                        userExists(request.resource.data.author) &&
+                        reviewDocFieldsTypeValid(request.resource.data);
+                    allow delete: if isAuth() &&
+                        isSameUserBasedOn(get(resource.data.author).data.uid) &&
+                        isSameUserBasedOn(get(resource.data.author).id);
+                    allow update: if isAuth() &&
+                        isSameUserBasedOn(get(resource.data.author).data.uid) &&
+                        isSameUserBasedOn(get(resource.data.author).id) &&
+                        reviewDocFieldsTypeValid(request.resource.data);
                 }
-
-                allow read: if true;
-                allow create: if isAuth() &&
-                    requestDataHasAllFields(["author", "star", "title", "description", "created"]) &&
-                    userExists(request.resource.data.author) &&
-                    reviewDocFieldsTypeValid(request.resource.data);
-                allow delete: if isAuth() &&
-                    isSameUserBasedOn(get(resource.data.author).data.uid);
-                allow update: if isAuth() &&
-                    isSameUserBasedOn(get(resource.data.author).data.uid) &&
-                    reviewDocFieldsTypeValid(request.resource.data);
             }
         }
 

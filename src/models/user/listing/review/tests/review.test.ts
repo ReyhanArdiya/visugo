@@ -11,11 +11,11 @@ import {
     MockUnauthUser,
     setMockUserDoc,
     setupMockFirebase,
-} from "../../../../tests/utils/firestore-tests-utils";
-import { UserDoc } from "../../user";
+} from "../../../../../tests/utils/firestore-tests-utils";
+import { UserDoc } from "../../../user";
+import { addListing } from "../../tests/utils";
 import { addReview, listReviews } from "./utils";
 
-let rulesTestEnv: RulesTestEnvironment;
 let authUser: MockAuthUser;
 let unauthUser: MockUnauthUser;
 let author: Awaited<ReturnType<typeof setMockUserDoc>>;
@@ -24,6 +24,8 @@ let correctReviewDoc: ReviewDoc;
 let addMockReview: (
     reviewDoc?: Parameters<typeof addReview>[2]
 ) => ReturnType<typeof addReview>;
+
+let rulesTestEnv: RulesTestEnvironment;
 
 beforeEach(async () => {
     const mockFirebase = await setupMockFirebase("1");
@@ -70,7 +72,10 @@ describe("ReviewDoc firestore schema validation", () => {
         await assertSucceeds(addMockReview());
     });
     it("denies when author is a DocumentReference to a non-existing user", async () => {
+        const listing = await addListing(authUser);
+
         const collection = new ReviewCollection(
+            listing.id,
             authUser.id,
             reviewDocConverter,
             authUser.db
@@ -154,9 +159,13 @@ describe("ReviewDoc firestore schema validation", () => {
 describe("ReviewDoc firestore rules", () => {
     describe("Authenticated users", () => {
         let authUserReviewCollection: ReviewCollection;
+        let reviewDoc: DocumentReference<ReviewDoc>;
 
-        beforeEach(() => {
+        beforeEach(async () => {
+            reviewDoc = await addMockReview();
+
             authUserReviewCollection = new ReviewCollection(
+                reviewDoc.parent.parent?.id as string,
                 authUser.id,
                 reviewDocConverter,
                 authUser.db
@@ -172,14 +181,11 @@ describe("ReviewDoc firestore rules", () => {
         });
 
         it("are allowed to delete a their own review", async () => {
-            const reviewDoc = await addMockReview();
             await assertSucceeds(
                 authUserReviewCollection.deleteDocById(reviewDoc.id)
             );
         });
         it("are allowed to update a their own review", async () => {
-            const reviewDoc = await addMockReview();
-
             await assertSucceeds(
                 authUserReviewCollection.updateDocById(reviewDoc.id, {
                     description: "Updated vvitches!",
@@ -191,8 +197,11 @@ describe("ReviewDoc firestore rules", () => {
     describe("Unauthenticated users", () => {
         let unauthUserReviewCollection: ReviewCollection;
 
-        beforeEach(() => {
+        beforeEach(async () => {
+            const listing = await addListing(authUser);
+
             unauthUserReviewCollection = new ReviewCollection(
+                listing.id,
                 "nothing",
                 reviewDocConverter,
                 unauthUser.db

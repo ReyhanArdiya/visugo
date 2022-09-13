@@ -3,15 +3,16 @@ import {
     FirestoreDataConverter,
     Timestamp,
 } from "firebase/firestore";
-import createPathSegments from "../../../utils/firebase/client/firestore/create-path-segments";
-import { UserCollection, UserDoc } from "../user";
+import { ListingCollection } from "..";
+import createPathSegments from "../../../../utils/firebase/client/firestore/create-path-segments";
+import { UserDoc } from "../../user";
 
 export class ReviewDoc {
     [k: string]: unknown;
 
     constructor(
         public author: DocumentReference<UserDoc>,
-        public star: 0 | 1 | 2 | 3 | 4 | 5,
+        public star: 1 | 2 | 3 | 4 | 5,
         public title: string,
         public description: string,
         public created = Timestamp.now()
@@ -38,15 +39,18 @@ export const reviewDocConverter: FirestoreDataConverter<ReviewDoc> = {
     },
 };
 
-export class ReviewCollection<T = ReviewDoc> extends UserCollection<T> {
+export class ReviewCollection<T = ReviewDoc> extends ListingCollection<T> {
     public collectionId = "reviews";
 
     constructor(
-        userId: string,
-        ...superParams: ConstructorParameters<typeof UserCollection<T>>
+        listingId: string,
+        ...superParams: ConstructorParameters<typeof ListingCollection<T>>
     ) {
-        const pathSegments = createPathSegments([userId, "reviews"], superParams[2]);
+        const pathSegments = createPathSegments(
+            [listingId, "reviews"],
+            superParams[3]
+        );
 
-        super(superParams[0], superParams[1], pathSegments);
+        super(superParams[0], superParams[1], superParams[2], pathSegments);
     }
 }

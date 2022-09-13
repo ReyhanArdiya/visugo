@@ -9,15 +9,19 @@ import { ReviewCollection, ReviewDoc, reviewDocConverter } from "..";
 import {
     MockAuthUser,
     MockUnauthUser,
-} from "../../../../tests/utils/firestore-tests-utils";
-import { UserDoc } from "../../user";
+} from "../../../../../tests/utils/firestore-tests-utils";
+import { UserDoc } from "../../../user";
+import { addListing } from "../../tests/utils";
 
 export const addReview = async (
     authUser: MockAuthUser,
     author: DocumentReference<UserDoc>,
     reviewDoc?: Partial<ReviewDoc>
 ) => {
+    const listing = await addListing(authUser);
+
     const collection = new ReviewCollection(
+        listing.id,
         authUser.id,
         reviewDocConverter,
         authUser.db

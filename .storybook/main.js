@@ -15,6 +15,7 @@ const config = {
         storyStoreV7: true,
         emotionAlias: false,
     },
+    staticDirs: ["../public"],
 };
 
 module.exports = config;
