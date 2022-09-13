@@ -3,6 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
+import { useMemo } from "react";
 import CartModal, { CartModalProps } from "../components/CartModal";
 import Navbar, { LoggedInNavbar, LoggedOutNavbar } from "../components/Navbar";
 import useCurrentUserDocListener from "../hooks/use-current-user-doc-listener";
@@ -21,7 +22,10 @@ function MyApp({ Component, pageProps }: AppProps) {
 
     // Cart
     const { isOpen, onClose, onOpen } = useDisclosure();
-    const products = userDoc?.cart && getUserDocCartProducts(userDoc, db);
+    const products = useMemo(
+        () => userDoc?.cart && getUserDocCartProducts(userDoc, db),
+        [db, userDoc]
+    );
 
     // Navigation
     const router = useRouter();

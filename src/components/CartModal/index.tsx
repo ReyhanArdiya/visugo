@@ -1,17 +1,17 @@
 import {
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalFooter,
-    ModalBody,
-    ModalCloseButton,
-    ModalProps,
+    Box,
     Button,
     List,
     ListItem,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    ModalProps,
     Text,
-    Box,
     useTheme,
 } from "@chakra-ui/react";
 import { MouseEventHandler } from "react";
@@ -29,36 +29,38 @@ const CartModal = ({
     totalPrice,
     ...modalProps
 }: CartModalProps) => {
-    const productCards = products.map(
-        (
-            {
-                image,
-                onAdd,
-                onRemove,
-                price,
-                seller,
-                title,
-                quantity,
-                onImageClick,
-                onDelete,
-            },
-            i
-        ) => (
-            <ListItem key={i}>
-                <ProductCard
-                    image={image}
-                    onAdd={onAdd}
-                    onRemove={onRemove}
-                    price={price}
-                    seller={seller}
-                    title={title}
-                    quantity={quantity}
-                    onDelete={onDelete}
-                    onImageClick={onImageClick}
-                />
-            </ListItem>
-        )
-    );
+    const productCards = products.length
+        ? products.map(
+              (
+                  {
+                      image,
+                      onAdd,
+                      onRemove,
+                      price,
+                      seller,
+                      title,
+                      quantity,
+                      onImageClick,
+                      onDelete,
+                  },
+                  i
+              ) => (
+                  <ListItem key={i}>
+                      <ProductCard
+                          image={image}
+                          onAdd={onAdd}
+                          onRemove={onRemove}
+                          price={price}
+                          seller={seller}
+                          title={title}
+                          quantity={quantity}
+                          onDelete={onDelete}
+                          onImageClick={onImageClick}
+                      />
+                  </ListItem>
+              )
+          )
+        : [];
 
     const {
         colors: { accent },
@@ -81,7 +83,18 @@ const CartModal = ({
                 <ModalCloseButton />
 
                 <ModalBody p={2}>
-                    <List spacing="2">{productCards}</List>
+                    {productCards.length ? (
+                        <List spacing="2">{productCards}</List>
+                    ) : (
+                        <Text
+                            textAlign="center"
+                            fontFamily="title"
+                            fontWeight="bold"
+                            fontSize="6xl"
+                        >
+                            Your cart is empty
+                        </Text>
+                    )}
                 </ModalBody>
 
                 <ModalFooter justifyContent="space-between">
