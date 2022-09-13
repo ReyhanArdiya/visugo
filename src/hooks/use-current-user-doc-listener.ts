@@ -1,4 +1,3 @@
-import { useBoolean } from "@chakra-ui/react";
 import { FirebaseApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
@@ -22,7 +21,7 @@ const useCurrentUserDocListener = (app: FirebaseApp) => {
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const [isLoggedIn, setIsLoggedIn] = useBoolean(false);
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
     const [userDocSnapshot, setUserDocSnapshot] =
         useState<DocumentSnapshot<UserDoc>>();
 
@@ -33,12 +32,12 @@ const useCurrentUserDocListener = (app: FirebaseApp) => {
         () =>
             onAuthStateChanged(auth, async user => {
                 if (user) {
-                    setIsLoggedIn.on();
+                    setIsLoggedIn(true);
                     const userCollection = new UserCollection(userDocConverter, db);
 
                     setUserDocSnapshot(await userCollection.getDocById(user.uid));
                 } else {
-                    setIsLoggedIn.off();
+                    setIsLoggedIn(false);
                 }
             }),
         [auth, db, setIsLoggedIn]
