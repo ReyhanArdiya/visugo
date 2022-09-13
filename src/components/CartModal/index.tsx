@@ -17,7 +17,7 @@ import {
 import { MouseEventHandler } from "react";
 import ProductCard, { ProductCardProps } from "./ProductCard";
 
-export interface CartModalProps extends ModalProps {
+export interface CartModalProps extends Omit<ModalProps, "children"> {
     onCheckout: MouseEventHandler<HTMLButtonElement>;
     products: ProductCardProps[];
     totalPrice: number;
