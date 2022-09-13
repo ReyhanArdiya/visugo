@@ -1,10 +1,9 @@
-import { FirebaseApp } from "firebase/app";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { Auth, onAuthStateChanged } from "firebase/auth";
 import {
     DocumentReference,
-    DocumentSnapshot,
-    getFirestore,
+    Firestore,
     onSnapshot,
+    Unsubscribe,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { UserCollection, UserDoc, userDocConverter } from "../models/user/user";
@@ -14,45 +13,39 @@ import { UserCollection, UserDoc, userDocConverter } from "../models/user/user";
  * Listen to the current user's {@link UserDoc} and rerender the current component
  * on update's to it; useful when listening to the current user's cart.
  *
- * @param app
  * @returns
  */
-const useCurrentUserDocListener = (app: FirebaseApp) => {
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
+const useCurrentUserDocListener = (auth: Auth, db: Firestore) => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-    const [userDocSnapshot, setUserDocSnapshot] =
-        useState<DocumentSnapshot<UserDoc>>();
-
     const [userDoc, setUserDoc] = useState<UserDoc>();
 
     // Listener for getting UserDoc's document snapshot
-    useEffect(
-        () =>
-            onAuthStateChanged(auth, async user => {
-                if (user) {
-                    setIsLoggedIn(true);
-                    const userCollection = new UserCollection(userDocConverter, db);
+    useEffect(() => {
+        let unsubSnapshot: Unsubscribe;
 
-                    setUserDocSnapshot(await userCollection.getDocById(user.uid));
-                } else {
-                    setIsLoggedIn(false);
-                }
-            }),
-        [auth, db, setIsLoggedIn]
-    );
+        const unsubAuthStateChanges = onAuthStateChanged(auth, async user => {
+            if (user) {
+                setIsLoggedIn(true);
+                const userCollection = new UserCollection(userDocConverter, db);
 
-    // Use to get live listener for UserDoc so stuff like quantity and items will be
-    // automatically updated in the UI
-    useEffect(
-        () =>
-            userDocSnapshot?.ref &&
-            onSnapshot(userDocSnapshot?.ref as DocumentReference<UserDoc>, userDoc =>
-                setUserDoc(userDoc.data())
-            ),
-        [userDocSnapshot?.ref]
-    );
+                const userDocSnapshot = await userCollection.getDocById(user.uid);
+
+                // Use to get live listener for UserDoc so stuff like quantity and items will be
+                // automatically updated in the UI
+                unsubSnapshot = onSnapshot(
+                    userDocSnapshot?.ref as DocumentReference<UserDoc>,
+                    userDoc => setUserDoc(userDoc.data())
+                );
+            } else {
+                setIsLoggedIn(false);
+            }
+        });
+
+        return () => {
+            unsubAuthStateChanges();
+            unsubSnapshot();
+        };
+    }, [auth, db, setIsLoggedIn]);
 
     return { isLoggedIn, userDoc, auth };
 };
