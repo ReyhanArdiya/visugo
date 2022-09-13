@@ -4,6 +4,7 @@ import {
     RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { FirebaseError } from "firebase/app";
+import { getDoc } from "firebase/firestore";
 
 import {
     cleanMockFirebase,
@@ -12,8 +13,13 @@ import {
     setupMockFirebase,
 } from "../../../tests/utils/firestore-tests-utils";
 import { addListing } from "../listing/tests/utils";
-import { UserCollection, UserDoc, userDocConverter } from "../user";
-import { addItemToCart, addUser } from "./utils";
+import {
+    CartUpdatedCartItem,
+    UserCollection,
+    UserDoc,
+    userDocConverter,
+} from "../user";
+import { addItemToCart, addUser, createMockCartItem } from "./utils";
 
 let rulesTestEnv: RulesTestEnvironment;
 let authUser: MockAuthUser;
@@ -146,14 +152,16 @@ describe("UserDoc cart field", () => {
     let authUserUserCollection: UserCollection;
 
     let userDoc: UserDoc;
-    let listingDoc: Awaited<ReturnType<typeof addListing>>;
+    let listingRef: Awaited<ReturnType<typeof addListing>>;
+    let listingDoc: CartUpdatedCartItem;
 
     beforeEach(async () => {
         authUserUserCollection = new UserCollection(userDocConverter, authUser.db);
 
         await addUser(authUser);
         userDoc = new UserDoc(authUser.id);
-        listingDoc = await addListing(authUser);
+        listingRef = await addListing(authUser);
+        listingDoc = createMockCartItem(await getDoc(listingRef));
     });
 
     test("authenticated users can add new item to cart", async () => {
@@ -253,13 +261,23 @@ describe("UserDoc cart field", () => {
         const listing2 = await addListing(authUser);
         const listing3 = await addListing(authUser);
 
-        await addItemToCart(authUser, authUserUserCollection, userDoc, listing1);
-        await addItemToCart(authUser, authUserUserCollection, userDoc, listing2);
+        await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            createMockCartItem(await getDoc(listing1))
+        );
+        await addItemToCart(
+            authUser,
+            authUserUserCollection,
+            userDoc,
+            createMockCartItem(await getDoc(listing2))
+        );
         const { cart: latestCart } = await addItemToCart(
             authUser,
             authUserUserCollection,
             userDoc,
-            listing3
+            createMockCartItem(await getDoc(listing3))
         );
 
         expect(latestCart).toHaveProperty(listing1.id);

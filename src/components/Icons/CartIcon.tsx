@@ -5,7 +5,7 @@ import { MdShoppingCart } from "react-icons/md";
 
 export interface CartIconProps {
     cartCounter: number;
-    onCartIconClick: MouseEventHandler;
+    onCartIconClick?: MouseEventHandler;
 }
 
 const CartIcon = ({ cartCounter, onCartIconClick }: CartIconProps) => {

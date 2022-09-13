@@ -1,9 +1,11 @@
 import { credential } from "firebase-admin";
-import { initializeApp, getApps, getApp } from "firebase-admin/app";
+import { getApp, getApps, initializeApp } from "firebase-admin/app";
 import serviceAccount from "../../../../google-service-account.secret.json";
-// import setupLocalEmulator from "../client/setup-local-emulator";
+import setupLocalEmulator from "./setup-local-emulator";
 
 const getFirebaseAdmin = () => {
+    setupLocalEmulator();
+
     if (getApps().length === 0) {
         return initializeApp({
             credential: credential.cert(serviceAccount as object),
@@ -12,8 +14,5 @@ const getFirebaseAdmin = () => {
         return getApp();
     }
 };
-
-// TODO finish this after learning admin sdk
-// setupLocalEmulator(app);
 
 export default getFirebaseAdmin;

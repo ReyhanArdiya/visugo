@@ -10,6 +10,7 @@ import {
     useColorModeValue,
     VStack,
 } from "@chakra-ui/react";
+import { getAuth as getAdminAuth } from "firebase-admin/auth";
 import { FirebaseError } from "firebase/app";
 import {
     AuthErrorCodes,
@@ -20,7 +21,8 @@ import {
     signInWithEmailAndPassword,
     signInWithPopup,
 } from "firebase/auth";
-import { type NextPage } from "next";
+import { GetServerSideProps, type NextPage } from "next";
+import { useRouter } from "next/router";
 import {
     ChangeEventHandler,
     MouseEventHandler,
@@ -31,11 +33,40 @@ import {
 import VisugoLogo from "../components/VisugoLogo";
 import { UserCollection, UserDoc, userDocConverter } from "../models/user/user";
 import { validatePassword } from "../utils/auth";
-import { firebaseTokenCookie } from "../utils/cookies";
+import { CookieKeys, firebaseTokenCookie } from "../utils/cookies";
+import getFirebaseAdmin from "../utils/firebase/admin/get-firebase-admin";
 import getFirestoreClient from "../utils/firebase/client/firestore/get-firestore-client";
 import getFirebaseClient from "../utils/firebase/client/get-firebase-client";
+import nookies from "nookies";
+
+export const getServerSideProps: GetServerSideProps = async ctx => {
+    const firebaseToken = ctx.req.cookies[CookieKeys.FIREBASE_TOKEN];
+    const app = getFirebaseAdmin();
+    const auth = getAdminAuth(app);
+
+    try {
+        const isLoggedIn = firebaseToken
+            ? await auth.verifyIdToken(firebaseToken)
+            : false;
+
+        return {
+            props: {},
+            redirect: isLoggedIn && {
+                destination: "/",
+                permanent: false,
+            },
+        };
+    } catch (err) {
+        nookies.destroy(ctx, CookieKeys.FIREBASE_TOKEN);
+
+        return {
+            props: {},
+        };
+    }
+};
 
 const Auth: NextPage = () => {
+    const router = useRouter();
     const bg = useColorModeValue("white", "black");
 
     const app = useMemo(() => getFirebaseClient(), []);
@@ -48,6 +79,8 @@ const Auth: NextPage = () => {
 
     const [emailError, setEmailError] = useState<string>("");
     const [passError, setPassError] = useState<string>("");
+
+    const goHome = () => router.replace("/");
 
     const emailInputHandler: ChangeEventHandler<HTMLInputElement> = ({
         target: { value },
@@ -76,6 +109,7 @@ const Auth: NextPage = () => {
     const signup: MouseEventHandler<HTMLButtonElement> = async () => {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
+            goHome();
         } catch (err) {
             if (err instanceof FirebaseError) {
                 switch (err.code) {
@@ -94,6 +128,7 @@ const Auth: NextPage = () => {
     const login: MouseEventHandler<HTMLButtonElement> = async () => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
+            goHome();
         } catch (err) {
             if (err instanceof FirebaseError) {
                 switch (err.code) {
@@ -104,7 +139,14 @@ const Auth: NextPage = () => {
         }
     };
 
-    const googleAuth = async () => await signInWithPopup(auth, provider);
+    const googleAuth = async () => {
+        try {
+            await signInWithPopup(auth, provider);
+            goHome();
+        } catch (err) {
+            alert(err);
+        }
+    };
 
     const isCredentialsInvalid = !email || !password || !!emailError || !!passError;
 
