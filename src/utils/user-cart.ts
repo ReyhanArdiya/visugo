@@ -1,8 +1,8 @@
 import { Firestore } from "firebase/firestore";
 import { CartModalProps } from "../components/CartModal";
-import { UserDoc } from "../models/user/user";
+import { Cart, UserDoc } from "../models/user/user";
 
-const getUserDocCartProducts = (
+export const getUserDocCartProducts = (
     user: UserDoc,
     db: Firestore
 ): CartModalProps["products"] => {
@@ -38,4 +38,10 @@ const getUserDocCartProducts = (
     });
 };
 
-export default getUserDocCartProducts;
+export const getCartTotal = (cart: Cart) => {
+    const cartItems = Object.values(cart);
+
+    return cartItems.reduce((total, cartItem) => total + cartItem.quantity, 0);
+};
+
+export default getCartTotal;

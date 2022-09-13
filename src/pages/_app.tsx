@@ -10,8 +10,7 @@ import useCurrentUserDocListener from "../hooks/use-current-user-doc-listener";
 import { CartContextProvider } from "../store/cart";
 import theme from "../theme";
 import getFirebaseClient from "../utils/firebase/client/get-firebase-client";
-import getUserDocCartProducts from "../utils/get-cart-products";
-import getCartTotal from "../utils/get-cart-total";
+import getCartTotal, { getUserDocCartProducts } from "../utils/user-cart";
 
 function MyApp({ Component, pageProps }: AppProps) {
     // Firebase data
