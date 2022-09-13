@@ -1,14 +1,8 @@
 import { UserCredential } from "firebase/auth";
-import {
-    doc,
-    DocumentReference,
-    Firestore,
-    FirestoreDataConverter,
-    setDoc,
-} from "firebase/firestore";
+import { doc, Firestore, FirestoreDataConverter, setDoc } from "firebase/firestore";
+import { ProductCardProps } from "../../components/CartModal/ProductCard";
 import createPathSegments from "../../utils/firebase/client/firestore/create-path-segments";
 import { FirestoreCollection } from "../base/firestore-collection";
-import { ListingDoc } from "./listing";
 
 export const userDocConverter: FirestoreDataConverter<UserDoc> = {
     fromFirestore(snapshot) {
@@ -22,12 +16,17 @@ export const userDocConverter: FirestoreDataConverter<UserDoc> = {
     },
 };
 
-export interface CartItem {
-    ref: DocumentReference<ListingDoc>;
+export interface CartItem
+    extends Omit<
+        ProductCardProps,
+        "onAdd" | "onDelete" | "onImageClick" | "onRemove"
+    > {
     quantity: number;
 }
 
 export type Cart = Record<string, CartItem>;
+
+export type CartUpdatedCartItem = Omit<CartItem, "quantity"> & { id: string };
 
 export class UserDoc {
     constructor(
@@ -38,24 +37,27 @@ export class UserDoc {
 
     public async cartUpdated(
         db: Firestore,
-        listingDoc: DocumentReference<ListingDoc>,
+        cartItem: CartUpdatedCartItem,
         incQuant: number | false
     ) {
         const userCol = new UserCollection(userDocConverter, db);
         const userDoc = await userCol.getDocById(this.uid);
         const cart = { ...userDoc.data()?.cart };
 
-        const deleteCartItem = () => delete cart[listingDoc.id];
+        const deleteCartItem = () => delete cart[cartItem.id];
 
         if (cart) {
-            const item = cart[listingDoc.id];
+            const item = cart[cartItem.id];
 
             if (incQuant === false) {
                 deleteCartItem();
             } else if (!item) {
-                cart[listingDoc.id] = {
+                cart[cartItem.id] = {
                     quantity: incQuant,
-                    ref: listingDoc,
+                    image: cartItem.image,
+                    price: cartItem.price,
+                    seller: cartItem.seller,
+                    title: cartItem.title,
                 };
             } else {
                 item.quantity += incQuant;
