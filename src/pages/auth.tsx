@@ -17,27 +17,18 @@ import {
     createUserWithEmailAndPassword,
     getAuth,
     GoogleAuthProvider,
-    onIdTokenChanged,
     signInWithEmailAndPassword,
     signInWithPopup,
 } from "firebase/auth";
 import { GetServerSideProps, type NextPage } from "next";
 import { useRouter } from "next/router";
-import {
-    ChangeEventHandler,
-    MouseEventHandler,
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
-import VisugoLogo from "../components/VisugoLogo";
-import { UserCollection, UserDoc, userDocConverter } from "../models/user/user";
-import { validatePassword } from "../utils/auth";
-import { CookieKeys, firebaseTokenCookie } from "../utils/cookies";
-import getFirebaseAdmin from "../utils/firebase/admin/get-firebase-admin";
-import getFirestoreClient from "../utils/firebase/client/firestore/get-firestore-client";
-import getFirebaseClient from "../utils/firebase/client/get-firebase-client";
 import nookies from "nookies";
+import { ChangeEventHandler, MouseEventHandler, useMemo, useState } from "react";
+import VisugoLogo from "../components/VisugoLogo";
+import { validatePassword } from "../utils/auth";
+import { CookieKeys } from "../utils/cookies";
+import getFirebaseAdmin from "../utils/firebase/admin/get-firebase-admin";
+import getFirebaseClient from "../utils/firebase/client/get-firebase-client";
 
 export const getServerSideProps: GetServerSideProps = async ctx => {
     const firebaseToken = ctx.req.cookies[CookieKeys.FIREBASE_TOKEN];
@@ -71,7 +62,6 @@ const Auth: NextPage = () => {
 
     const app = useMemo(() => getFirebaseClient(), []);
     const auth = useMemo(() => getAuth(app), [app]);
-    const db = useMemo(() => getFirestoreClient(app), [app]);
     const provider = useMemo(() => new GoogleAuthProvider(), []);
 
     const [email, setEmail] = useState("");
@@ -149,22 +139,6 @@ const Auth: NextPage = () => {
     };
 
     const isCredentialsInvalid = !email || !password || !!emailError || !!passError;
-
-    useEffect(
-        () =>
-            onIdTokenChanged(auth, async user => {
-                const userCol = new UserCollection(userDocConverter, db);
-
-                if (user) {
-                    userCol.signUp(user.uid, new UserDoc(user.uid));
-
-                    firebaseTokenCookie.set(await user.getIdToken());
-                } else {
-                    firebaseTokenCookie.destroy();
-                }
-            }),
-        [auth, db]
-    );
 
     return (
         <Center

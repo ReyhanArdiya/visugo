@@ -1,14 +1,16 @@
 import { ChakraProvider, useDisclosure } from "@chakra-ui/react";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, onIdTokenChanged } from "firebase/auth";
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import CartModal, { CartModalProps } from "../components/CartModal";
 import Navbar, { LoggedInNavbar, LoggedOutNavbar } from "../components/Navbar";
 import useCurrentUserDocListener from "../hooks/use-current-user-doc-listener";
+import { UserCollection, UserDoc, userDocConverter } from "../models/user/user";
 import { CartContextProvider } from "../store/cart";
 import theme from "../theme";
+import { firebaseTokenCookie } from "../utils/cookies";
+import getFirestoreClient from "../utils/firebase/client/firestore/get-firestore-client";
 import getFirebaseClient from "../utils/firebase/client/get-firebase-client";
 import { getCartTotal, getUserDocCartProducts } from "../utils/user-cart";
 
@@ -16,8 +18,24 @@ function MyApp({ Component, pageProps }: AppProps) {
     // Firebase data
     const app = getFirebaseClient();
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db = getFirestoreClient(app);
     const { isLoggedIn, userDoc } = useCurrentUserDocListener(auth, db);
+
+    useEffect(
+        () =>
+            onIdTokenChanged(auth, async user => {
+                const userCol = new UserCollection(userDocConverter, db);
+
+                if (user) {
+                    userCol.signUp(user.uid, new UserDoc(user.uid));
+
+                    firebaseTokenCookie.set(await user.getIdToken());
+                } else {
+                    firebaseTokenCookie.destroy();
+                }
+            }),
+        [auth, db]
+    );
 
     // Cart
     const { isOpen, onClose, onOpen } = useDisclosure();
@@ -38,7 +56,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                   onOpen();
               },
               onProfileClick() {
-                  alert("Go to user's homepage");
+                  router.push("/user");
               },
           } as Omit<LoggedInNavbar, "isLoggedIn">)
         : ({
